@@ -20,6 +20,7 @@ O projeto também tem uma pasta '/raw' que contem uma subpasta para cada um dos 
 - experimento 1: Baseado nos dados de dezembro de 2019. Não tem predições espaciais, ou os multiplos modelos.
 - experimento 2: Baseado nos dados de julho de 2019. Prove predições espaciais em ressolução menor (5000m).
 - experimento 3: Ainda baseado nos dados de dezembro de 2019, mas utiliza resolução melhor (30m).
+- experimento 4: Baseado em todos os dado do início do projeto até janeiro de 2020. Nesse experimento substituimos os método de SSF pelo método maxent (species distribution modelling), porque ele se provou mais preciso (ainda senso trabalhado). 
 
 ## Descrição dos arquivos de código ##
 
