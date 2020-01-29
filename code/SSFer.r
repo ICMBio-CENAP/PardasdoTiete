@@ -79,7 +79,7 @@ storage <- storage %>% filter(sapply(fit,function(x) class(x)[1])=="fit_clogit")
 preds <- storage %>% mutate( aucs = map2_dbl(fit, trk, auccalculator) )
 
 bestmodels <- preds %>% group_by(Name) %>% arrange(desc(aucs)) %>% slice(1) %>%
-              ungroup() %>% select(-data, -trk)
+              ungroup()
 saveRDS(bestmodels, file=outfile )
 
 }
