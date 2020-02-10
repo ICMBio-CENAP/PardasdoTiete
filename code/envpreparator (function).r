@@ -28,8 +28,16 @@ envpreparator <- function(buffergeo, tempdir="./maps", finalrds, res=30, overwri
 # finalrds = "observedstack.rds"
 
 set_env(qgis.folder)
+open_app()
 Sys.setenv(GDAL_DATA = paste0(qgis.folder, "\\share\\gdal"))
 Sys.setenv(PROJ_LIB  = paste0(qgis.folder, "\\share\\proj"))
+
+## Important to run grass7 algorithms. Even when it leads to errors
+## it allow grass code to work. 
+## Discovered in https://gis.stackexchange.com/questions/296502/pyqgis-scripts-outside-of-qgis-gui-running-processing-algorithms-from-grass-prov
+py_run_string("from processing.algs.grass7.Grass7Utils import Grass7Utils")
+py_run_string("Grass7Utils.checkGrassIsInstalled()")
+
 ### Base raster layer ###
 baseproj   <- "+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs" 
 
