@@ -68,8 +68,15 @@ if(produce.models) {
      )
 }
 
+# TODO: Get the constrain maps with Guilherme, and check what the classes mean
+# in the reserve map.
 if(produce.actual) {
-    zoner()
+    zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+           sigma = , 
+           reserves = , 
+           constrain =, 
+           out.folder = 
+           )
 
 
 }
