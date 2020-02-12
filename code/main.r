@@ -40,7 +40,7 @@ res<-30
 produce.gpkg        <- TRUE
 produce.studystack  <- TRUE
 produce.models      <- TRUE
-
+produce.actual      <- TRUE
 
 if(produce.gpkg) { 
     data.importer(derivdir   = paste0(experiment.folder,"/dataderived"),
@@ -68,3 +68,8 @@ if(produce.models) {
      )
 }
 
+if(produce.actual) {
+    zoner()
+
+
+}
