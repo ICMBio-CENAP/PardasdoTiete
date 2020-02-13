@@ -78,7 +78,7 @@ optimal.quality <- cellStats(optimal*AESareas, "sum")
 # output the Quality ratios:
 ratio.vector <- c(reserve = res.quality, optimal = optimal.quality, ratio = res.quality/optimal.quality)
 saveRDS(ratio.vector,file = "qualities.rds")
-cat("estimation on",quality.map "complete")
+cat("estimation on",quality.map,"complete")
 
 }
 

@@ -1,4 +1,4 @@
-#### Main script for analysis desiging reserves for Cougars in the 
+#### Main script for analysis desiging reserves for pumas in the 
 #### Tiete region 
 
 ## Intent: This script act as the main function caller for this project
@@ -30,7 +30,8 @@ library(stringi)
 source("./code/data importer.r")
 source("./code/envpreparator (function).r")
 source("./code/maxenter.r")
-
+source("./code/sigma calculator.r")
+source("./code/zoner.r")
 
 experiment.folder <- "./experiment004"
 res<-30
@@ -68,11 +69,13 @@ if(produce.models) {
      )
 }
 
+sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
+
 # TODO: Get the constrain maps with Guilherme, and check what the classes mean
 # in the reserve map.
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
-           sigma = , 
+           sigma = sigma, 
            reserves = , 
            constrain =, 
            out.folder = 
