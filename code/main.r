@@ -13,7 +13,7 @@
 
 
 # Load dependencies
-options(java.parameters = "-Xmx1g" )
+options(java.parameters = "-Xmx2g" )
 library(raster)
 library(gdalUtils)
 library(dismo)
@@ -23,7 +23,6 @@ library(lubridate)
 library(readxl)
 library(sf)
 library(parallel)
-library(amt)
 library(stringi)
 
 
@@ -63,9 +62,10 @@ if(produce.studystack ) {
 if(produce.models) {
     maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
               obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
-              studydir = paste0(experiment.folder,"/mapsderived/studystack"),
+              studydir = paste0(experiment.folder,"/mapsderived/studyarea"),
               evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
-              outfile  = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction")    
+              outfile  = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+              nc = 10   
      )
 }
 
