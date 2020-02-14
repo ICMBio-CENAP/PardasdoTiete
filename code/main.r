@@ -53,7 +53,7 @@ if(produce.gpkg) {
 if(produce.studystack ) {
     envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
                tempdir   =   paste0(experiment.folder, "/mapsderived/studyarea"),
-               finalrds  = "experiment003map.rds",
+               finalrds  = "experiment004map.rds",
                res=res,
                overwrite.gb = TRUE,
                qgis.folder  = "C:/Program Files/QGIS 3.4"
@@ -75,6 +75,41 @@ sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_a
 # in the reserve map.
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+           sigma = sigma, 
+           reserves = , 
+           constrain =, 
+           out.folder = 
+           )
+
+
+}
+
+# Get future land use
+if(produce.futurestack) {
+        envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
+               tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
+               finalrds  = "experiment004map.rds",
+               reforesteddir = "./raw/maps/UHEs"
+               res=res,
+               overwrite.gb = TRUE,
+               qgis.folder  = "C:/Program Files/QGIS 3.4"
+)
+}
+
+# Produce second set of predictions
+if(produce.futuremodels) {
+    maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
+              obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
+              studydir = paste0(experiment.folder,"/mapsderived/futurestack"),
+              evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
+              outfile  = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
+              nc = 10   
+     )
+}
+
+# Finally select reserves on that code
+if(produce.actual) {
+    zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
            sigma = sigma, 
            reserves = , 
            constrain =, 

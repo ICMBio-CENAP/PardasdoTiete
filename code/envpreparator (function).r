@@ -17,7 +17,13 @@
 #         trimestal report for definition
 
 
-envpreparator <- function(buffergeo, tempdir="./maps", finalrds, res=30, overwrite.gb = TRUE, qgis.folder) {
+envpreparator <- function(buffergeo, 
+                          tempdir="./maps",
+                          reforesteddir = NULL 
+                          finalrds, 
+                          res=30, 
+                          overwrite.gb = TRUE, 
+                          qgis.folder) {
 
 #debug: 
 # qgis.folder <- "C:/Program Files/QGIS 3.4"
@@ -154,6 +160,25 @@ gdalUtils::gdal_rasterize( src = landusebase,
                            where = "CLASSE_USO='pastagem'",
                            burn=8
                            )     
+
+# For measuring the effect of AES florestation, we will create a second set of maps where we burn the locations of
+# reforestation as forests
+# For that we first collect and project all maps to our base system
+
+if( !is.null(reforesteddir)) {
+    apps <- lapply( list.files(reforesteddir, pattern="shp$"), st_read )
+    apps <- do.call(rbind, apps)
+    apps <- st_transform(apps, baseproj)
+    apps <- apps[ c(st_intersects(apps,studyarea,sparse=F)), ]
+    apps$SIT_ATUAL <- stri_trans_general(as.character(apps$SIT_ATUAL), "latin-ascii")
+    st_write(apps, dsn ="./maps derived/reserves.gpkg", driver="GPKG",layer="reserves")
+    
+    gdalUtils::gdal_rasterize( src = "./maps derived/reserves.gpkg", 
+                               dst_filename = landuseraster,
+                               where = "SIT_ATUAL IN ('A RESTAURAR', 'EM RESTAURAÇAO')",
+                               burn=4
+                           ) 
+}
 
 # Create a distance to road and distance to road and water by creating a landuse map with those 
 # characteristics and then using gdal_proximity to extract distances
