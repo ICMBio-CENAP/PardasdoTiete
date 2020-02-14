@@ -63,6 +63,7 @@ if(produce.models) {
     maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
               obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
               studydir = paste0(experiment.folder,"/mapsderived/studyarea"),
+              modelfile = paste0(experiment.folder, "/dataderived/maxentmodel.rds")
               evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
               outfile  = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
               nc = 10   
@@ -101,6 +102,7 @@ if(produce.futuremodels) {
     maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
               obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
               studydir = paste0(experiment.folder,"/mapsderived/futurestack"),
+              modelfile = paste0(experiment.folder, "/dataderived/maxentmodelfuture.rds")
               evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
               outfile  = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
               nc = 10   
