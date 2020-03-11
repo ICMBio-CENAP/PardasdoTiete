@@ -24,6 +24,7 @@ library(readxl)
 library(sf)
 library(parallel)
 library(stringi)
+library(amt)
 
 
 source("./code/data importer.r")

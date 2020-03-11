@@ -20,7 +20,8 @@
 # A single number represeting the desired sigma.
 
 sigma.calculator <- function(infile) {
-    infile <- "C:\\Users\\jorge\\Documents\\AssociadoCNAP\\Projeto Pardas do Tiete\\experiment004\\dataderived\\pardas_tiete_all_individuals.gpkg"
+    # FOR DEBUG:
+    #infile <- "C:\\Users\\jorge\\Documents\\AssociadoCNAP\\Projeto Pardas do Tiete\\experiment004\\dataderived\\pardas_tiete_all_individuals.gpkg"
     
     # Load data and convert it to amt format
     data <- st_read(infile) 
