@@ -44,9 +44,12 @@ saveRDS(auc.test, file = evalfile)
 
 # Read study area mapstack
 studystack <-  stack(list.files(studydir,pattern="tif$",full.names=T))
+model <-readRDS("./experiment004/dataderived/maxentmodelfuture.rds")
+names(studystack)
 
 # FOR DEBUG:
 #studystack <-  crop(studystack, extent(500000,501000,-1250000,-1245000))
+test <- predict(studystack,model, filename="./experiment004/mapsderived/qualityfuture/maxentpredictiontest.tif")
 
 # Use predict with clusterR to speed up process
 beginCluster(nc)

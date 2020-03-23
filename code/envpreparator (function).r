@@ -19,7 +19,7 @@
 
 envpreparator <- function(buffergeo, 
                           tempdir="./maps",
-                          reforesteddir = NULL 
+                          reforesteddir = NULL, 
                           finalrds, 
                           res=30, 
                           overwrite.gb = TRUE, 
@@ -32,17 +32,6 @@ envpreparator <- function(buffergeo,
 # overwrite.gb <- FALSE
 # res=2500
 # finalrds = "observedstack.rds"
-
-set_env(qgis.folder)
-open_app()
-Sys.setenv(GDAL_DATA = paste0(qgis.folder, "\\share\\gdal"))
-Sys.setenv(PROJ_LIB  = paste0(qgis.folder, "\\share\\proj"))
-
-## Important to run grass7 algorithms. Even when it leads to errors
-## it allow grass code to work. 
-## Discovered in https://gis.stackexchange.com/questions/296502/pyqgis-scripts-outside-of-qgis-gui-running-processing-algorithms-from-grass-prov
-py_run_string("from processing.algs.grass7.Grass7Utils import Grass7Utils")
-py_run_string("Grass7Utils.checkGrassIsInstalled()")
 
 ### Base raster layer ###
 baseproj   <- "+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs" 
@@ -165,17 +154,10 @@ gdalUtils::gdal_rasterize( src = landusebase,
 # reforestation as forests
 # For that we first collect and project all maps to our base system
 
-if( !is.null(reforesteddir)) {
-    apps <- lapply( list.files(reforesteddir, pattern="shp$"), st_read )
-    apps <- do.call(rbind, apps)
-    apps <- st_transform(apps, baseproj)
-    apps <- apps[ c(st_intersects(apps,studyarea,sparse=F)), ]
-    apps$SIT_ATUAL <- stri_trans_general(as.character(apps$SIT_ATUAL), "latin-ascii")
-    st_write(apps, dsn ="./maps derived/reserves.gpkg", driver="GPKG",layer="reserves")
-    
-    gdalUtils::gdal_rasterize( src = "./maps derived/reserves.gpkg", 
+if( !is.null(reforesteddir)) {  
+    gdalUtils::gdal_rasterize( src = reforesteddir, 
                                dst_filename = landuseraster,
-                               where = "SIT_ATUAL IN ('A RESTAURAR', 'EM RESTAURAÇAO')",
+                               where = "situation IN ('A RESTAURAR', 'EM RESTAURAÇAO')",
                                burn=4
                            ) 
 }
@@ -225,6 +207,14 @@ type.name = c("forest","sugar", "pasture")
 type.number = c(4,7,8)
 sizes = c(100,500,2500,5000)
 
+            # code for running single map
+            # run_qgis(alg = "grass7:r.mapcalc", maps = normalizePath(landuseraster) , expression = paste0("binary=landuse==",8), output_dir = tempdir())
+
+            # params = get_args_man("grass7:r.mfilter")
+            # params["input"] = paste0(tempdir(),"/binary.tif")
+            # params["filter"] = filter.maker(5000,res, paste0(tempdir(), "/filter.txt" ))
+            # params["output"] = normalizePath(paste0(tempdir,"/prop_","pasture","_",5000,"m.tif"))
+            # run_qgis(alg = "grass7:r.mfilter", params=params)    
 
 for( a in 1:length(type.name)) {
     for(b in 1:length(sizes)) {

@@ -31,16 +31,6 @@
 
 zoner <- function( quality.map, sigma, reserves, constrain, out.folder) {
 
-#FOR DEBUG:
-qgis.folder <- "C:/Program Files/QGIS 3.10"
-
-
-# Setting up qgis
-set_env(qgis.folder)
-open_app()
-py_run_string("from processing.algs.grass7.Grass7Utils import Grass7Utils")
-py_run_string("Grass7Utils.checkGrassIsInstalled()")
-
 # Producing blurred image
 run_qgis(alg   = "saga:gaussianfilter", 
          INPUT = normalizePath(quality.map), 
@@ -51,7 +41,7 @@ run_qgis(alg   = "saga:gaussianfilter",
 
 # Constrain it to AES tiete regions
 run_qgis(alg = "gdal:cliprasterbymasklayer",
-         INPUT = normalizePath(paste0(out.folder,"/qualityblurred.tif")),
+         INPUT = normalizePath(paste0(out.folder,"/qualityblurred.sdat")),
          MASK = constrain,
          CROP_TO_CUTLINE = TRUE,
          OUTPUT = paste0(out.folder,"/qualityinAES.tif")
@@ -59,15 +49,16 @@ run_qgis(alg = "gdal:cliprasterbymasklayer",
 
 
 # Get quality inside existing reserves
-AESareas  <- raster( paste0(out.folder,"/qualityinAES.tif") ) 
-reserves <- readOGR(reserves)
+AESareas  <- raster( paste0(out.folder,"/qualityinAES.tif")) 
+reserves <-  readOGR(reserves)
 
-res.values <- extract(AESareas, reserves)
-res.quality <- sum(res.values)
+res.values <- raster::extract(AESareas, reserves)
+res.quality <- sum(unlist(res.values),na.rm=T)
+print(res.quality)
 
 # Turn in number of cells in reserves in a quantile estimation
-ncells  <- cellStats(AESareas, fun = function(x) sum(!is.na(x))  )
-res.quantile <- 1 - length(res.values)/ncells
+ncells  <- cellStats(AESareas, stat = function(x,na.rm) sum(!is.na(x))  )
+res.quantile <- 1 - length(unlist(res.values))/ncells
 
 # find which cell values are above this quantile and calculate
 # their value 
@@ -77,8 +68,8 @@ optimal.quality <- cellStats(optimal*AESareas, "sum")
 
 # output the Quality ratios:
 ratio.vector <- c(reserve = res.quality, optimal = optimal.quality, ratio = res.quality/optimal.quality)
-saveRDS(ratio.vector,file = "qualities.rds")
+saveRDS(ratio.vector,file = paste0(out.folder,"/qualities.rds") )
 cat("estimation on",quality.map,"complete")
 
 }
-
+#test<- readRDS("./experiment004/mapsderived/currentquality/qualities.rds")

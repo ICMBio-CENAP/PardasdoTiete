@@ -12,6 +12,8 @@
 ## eventually, a set of reserves desings.
 
 
+#TODO: investigate varying buffer in envpreparator.
+
 # Load dependencies
 options(java.parameters = "-Xmx2g" )
 library(raster)
@@ -25,6 +27,7 @@ library(sf)
 library(parallel)
 library(stringi)
 library(amt)
+library(rgdal)
 
 
 source("./code/data importer.r")
@@ -32,16 +35,37 @@ source("./code/envpreparator (function).r")
 source("./code/maxenter.r")
 source("./code/sigma calculator.r")
 source("./code/zoner.r")
+source("./code/app preparer.r")
+source("./code/quota organizer.r")
 
 experiment.folder <- "./experiment004"
 res<-30
 
+## Load QGIS and gdal variables, also run two code lines to activate grass7 modules on qgis
+
+qgis.folder <- "C:/Program Files/QGIS 3.4"
+Sys.setenv(GDAL_DATA = paste0(qgis.folder, "\\share\\gdal"))
+Sys.setenv(PROJ_LIB  = paste0(qgis.folder, "\\share\\proj"))
+set_env(qgis.folder)
+open_app()
+
+
+## Important to run grass7 algorithms. Even when it leads to errors
+## it allow grass code to work. 
+## Discovered in https://gis.stackexchange.com/questions/296502/pyqgis-scripts-outside-of-qgis-gui-running-processing-algorithms-from-grass-prov
+py_run_string("from processing.algs.grass7.Grass7Utils import Grass7Utils")
+py_run_string("Grass7Utils.checkGrassIsInstalled()")
+
+## This library must be loaded after open_app, because there is a conflict with open_app() from RQGIS3
+library(lwgeom)
 
 ## add which values to calculate
 produce.gpkg        <- TRUE
 produce.studystack  <- TRUE
 produce.models      <- TRUE
 produce.actual      <- TRUE
+organize.cota       <- TRUE
+organize.app        <- TRUE
 
 if(produce.gpkg) { 
     data.importer(derivdir   = paste0(experiment.folder,"/dataderived"),
@@ -71,27 +95,41 @@ if(produce.models) {
      )
 }
 
+
+if(organize.cota) {
+    quota.organizer( forestmap   = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
+                     quotafolder = paste0(experiment.folder, "/mapsderived/quotas")
+    )
+
+if(organize.app) {
+    app.preparer( appfolder = "./raw/maps/APPs" ,
+                  forestmap = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
+                  select.uhe= c("BAR","BAB","NAV","IBI", "PRO"),
+                  select.situation = c("RESTAURADA","EM RESTAURACAO","A RESTAURAR","Area umida","Remanescente"),
+                  outfile = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg")
+                  )
+}
+
 sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
+
 
 # TODO: Get the constrain maps with Guilherme, and check what the classes mean
 # in the reserve map.
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
-           reserves = , 
-           constrain =, 
-           out.folder = 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           out.folder = paste0(experiment.folder, "/mapsderived/currentquality")
            )
-
-
 }
 
 # Get future land use
 if(produce.futurestack) {
         envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
                tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
-               finalrds  = "experiment004map.rds",
-               reforesteddir = "./raw/maps/UHEs"
+               finalrds  = "experiment004mapfuture.rds",
+               reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
                res=res,
                overwrite.gb = TRUE,
                qgis.folder  = "C:/Program Files/QGIS 3.4"
@@ -103,8 +141,8 @@ if(produce.futuremodels) {
     maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
               obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
               studydir = paste0(experiment.folder,"/mapsderived/futurestack"),
-              modelfile = paste0(experiment.folder, "/dataderived/maxentmodelfuture.rds")
-              evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
+              modelfile = paste0(experiment.folder, "/dataderived/maxentmodelfuture.rds"),
+              evalfile = paste0(experiment.folder, "/dataderived/maxentevalfuture.rds"),
               outfile  = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
               nc = 10   
      )
