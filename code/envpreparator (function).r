@@ -241,36 +241,6 @@ for( a in 1:length(type.name)) {
 # different effects
 init(raster(landuseraster), fun=function(x) rep(1,x), filename = paste0(tempdir,"/dispresidency.tif"))
 
-list.files(tempdir, pattern = "tif$",full.names=T)
-
-mapstack <- stack( list.files(tempdir, pattern = "tif$",full.names=T))
-mapstack <- addLayer(mapstack, mapstack[["dispresidency"]])
-
-names(mapstack) = c(
-    "dispdispersal"        ,
-    "roads"                ,
-    "dist_roads"           ,
-    "landuse"              ,
-    "log_dist_roads"       ,
-    "log_dist_water"       ,
-    "prop_forest_100m"     ,
-    "prop_forest_2500m"    ,
-    "prop_forest_5000m"    ,
-    "prop_forest_500m"     ,
-    "prop_pasture_100m"    ,
-    "prop_pasture_2500m"   ,
-    "prop_pasture_5000m"   ,
-    "prop_pasture_500m"    ,
-    "prop_sugarcane_100m"  ,
-    "prop_sugarcane_2500m" ,
-    "prop_sugarcane_5000m" ,
-    "prop_sugarcane_500m"  ,
-    "water"                ,
-    "dist_water"           ,
-    "dispresidency"   
-)
-
-
 # Save the pointers to the raster in a object for future reading 
 return(tempdir)
 

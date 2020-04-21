@@ -134,12 +134,12 @@ if(produce.actual) {
 # Get future land use
 if(produce.futurestack) {
     envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
-            tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
-            finalrds  = "experiment004mapfuture.rds",
-            reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
-            res=res,
-            overwrite.gb = TRUE,
-            qgis.folder  = "C:/Program Files/QGIS 3.4"
+                   tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
+                   finalrds  = "experiment004mapfuture.rds",
+                   reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
+                   res=res,
+                   overwrite.gb = TRUE,
+                   qgis.folder  = "C:/Program Files/QGIS 3.4"
 )
 }
 
