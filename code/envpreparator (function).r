@@ -207,7 +207,7 @@ type.name = c("forest","sugar", "pasture")
 type.number = c(4,7,8)
 sizes = c(100,500,2500,5000)
 
-            # code for running single map
+            # code for running single map   
             # run_qgis(alg = "grass7:r.mapcalc", maps = normalizePath(landuseraster) , expression = paste0("binary=landuse==",8), output_dir = tempdir())
 
             # params = get_args_man("grass7:r.mfilter")

@@ -13,6 +13,7 @@
 
 
 #TODO: investigate varying buffer in envpreparator.
+#TODO: make sure we used all data and not just the last semesters of 2019
 
 # Load dependencies
 options(java.parameters = "-Xmx2g" )
@@ -113,8 +114,6 @@ if(organize.app) {
 sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
 
 
-# TODO: Get the constrain maps with Guilherme, and check what the classes mean
-# in the reserve map.
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
@@ -123,6 +122,8 @@ if(produce.actual) {
            out.folder = paste0(experiment.folder, "/mapsderived/currentquality")
            )
 }
+
+## Reforested world scenarios (4 & 5)
 
 # Get future land use
 if(produce.futurestack) {
@@ -149,7 +150,7 @@ if(produce.futuremodels) {
 }
 
 # Finally select reserves on that code
-if(produce.actual) {
+if(produce.actualfuture) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
            sigma = sigma, 
            reserves = , 

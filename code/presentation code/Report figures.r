@@ -8,27 +8,27 @@ library(lubridate)
 library(openxlsx)
 library(dplyr)
 
-locs <- st_read("./experiment 001/dataderived/pardas_tiete_all_individuals.gpkg")
-metadata<- read.csv2("./experiment 001/dataderived/modifiedlocs/meta_data.csv")
+locs <- st_read("./experiment004/dataderived/pardas_tiete_all_individuals.gpkg")
+metadata<- read.csv("./raw/data 17.12.19/meta_data.csv")
 ## Figure 1: Period of collar activity from all the animals
 ## (data from December/2019)
 ggplot(locs,aes(x=timestamp, y=Name,col=Name)) + geom_point() +theme_bw() +xlab("tempo")+ylab("Nome do Animal")
 
 # Table 1: Duration, sex, beggining of sample, end of sample, and  sample size for each animal
 
-table1 <- data.frame(ID = unique(locs$ID), 
-           Nome = as.character( metadata$Name[match(unique(locs$ID), metadata$ID)] ) ,
-           Sexo =  as.character( metadata$sex[match(unique(locs$ID), metadata$ID)] ),
-           begin= format(as.POSIXct(tapply(locs$timestamp, locs$ID, min), origin = "1970-01-01 00:00.00 UTC" ),"%d/%m/%Y"),
-           end  = format(as.POSIXct(tapply(locs$timestamp, locs$ID, max), origin = "1970-01-01 00:00.00 UTC" ),"%d/%m/%Y"),
+table1 <- data.frame( 
+           Nome = as.character(unique(locs$Name)),
+           Sexo = as.character( metadata$sex[match(unique(locs$Name), metadata$Name)] ),
+           begin= format(as.POSIXct(tapply(locs$timestamp, locs$Name, min), origin = "1970-01-01 00:00.00 UTC" ),"%d/%m/%Y"),
+           end  = format(as.POSIXct(tapply(locs$timestamp, locs$Name, max), origin = "1970-01-01 00:00.00 UTC" ),"%d/%m/%Y"),
            duration = round( difftime(
-                             as.POSIXct(tapply(locs$timestamp, locs$ID, max),origin = "1970-01-01 00:00.00 UTC"), 
-                             as.POSIXct(tapply(locs$timestamp, locs$ID, min),origin = "1970-01-01 00:00.00 UTC"),
+                             as.POSIXct(tapply(locs$timestamp, locs$Name, max),origin = "1970-01-01 00:00.00 UTC"), 
+                             as.POSIXct(tapply(locs$timestamp, locs$Name, min),origin = "1970-01-01 00:00.00 UTC"),
                              units="days")
                              ,0),
-            n=as.numeric(table(locs$ID))
+            n=as.numeric(table(locs$Name))
 )
-write.xlsx(table1,file="./presentations/Relatorio trimestral 2019_12/table1.xlsx")
+write.xlsx(table1,file="./presentations/Relatorio trimestral 2020_03/table1.xlsx")
 
 ## Figure 2: Plotting animal locations on top of a map of the São paulo and of the study area
 gg_color_hue <- function(n) {
@@ -90,17 +90,34 @@ summ <- summ[order(summ$ID),]
 write.xlsx(summ,file="./presentations/Relatorio trimestral 2019_12/table2.xlsx")
 
 
+# Figure 5: Percent contribution of each variable in maxent with nice label names
+experiment004\dataderived\maxentmodel.rds
+model <- readRDS("./experiment004/dataderived/maxentmodel.rds")
+plot(model,main="contribuição da váriavel",xlab="porcentagem",
+labels=rev(c("açucar 5000m","floresta 100m","floresta 5000m", "açucar 2500m", "proximidade agua",
+"floresta 500m", "proximidade estradas","açucar 500m", "pastagem 5000m","log proximidade estradas","pastagem 100m",
+"floresta 2500m","pastagem 500m","pastagem 2500m", "uso da terra", "açucar 100m","log proximidade agua",
+"presença agua","presença estrada","constante"))
+)
 
-
-# Figure 11: Prediction map 
+# Figure 6: Prediction map 
 library(raster)
 library(sf)
 crs <- '+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs'
 
-predmap <- raster("./experiment003/mapsderived/qualitypredictions/meanquality.tif")
+predmap <- raster("./experiment004/mapsderived/qualitypredictions/maxentprediction.tif")
 studyarea <- st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp") %>% st_transform(crs=crs)
 plot(predmap,col = gray.colors(10, start = 0.3, end = 0.9, gamma = 2.2, alpha = NULL),axes=FALSE,box=FALSE)
 plot(studyarea$geometry,add=T,col=NA,lwd=2)
+
+# Figure 7: Prediction map  blurred
+library(raster)
+predmap <- raster("./experiment004/mapsderived/currentquality/qualityblurred.sdat")
+plot(predmap,col = gray.colors(10, start = 0.3, end = 0.9, gamma = 2.2, alpha = NULL),axes=FALSE,box=FALSE)
+
+
+# Figure 8: Predicted optimal regions
+# Done in QGIS
 
 # Figure 12: Prediction map averaged by municipality
 library(raster)
