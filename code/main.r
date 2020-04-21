@@ -91,11 +91,17 @@ if(produce.models) {
               studydir = paste0(experiment.folder,"/mapsderived/studyarea"),
               modelfile = paste0(experiment.folder, "/dataderived/maxentmodel.rds")
               evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
-              outfile  = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
               nc = 10   
      )
 }
+if(predict.models) {
+    predictor(mapdir = paste0(experiment.folder,"/mapsderived/studyarea"),
+              model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
+              outfile = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+              nc =10    
+    )
 
+}
 
 if(organize.cota) {
     quota.organizer( forestmap   = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
@@ -127,26 +133,24 @@ if(produce.actual) {
 
 # Get future land use
 if(produce.futurestack) {
-        envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
-               tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
-               finalrds  = "experiment004mapfuture.rds",
-               reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
-               res=res,
-               overwrite.gb = TRUE,
-               qgis.folder  = "C:/Program Files/QGIS 3.4"
+    envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
+            tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
+            finalrds  = "experiment004mapfuture.rds",
+            reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
+            res=res,
+            overwrite.gb = TRUE,
+            qgis.folder  = "C:/Program Files/QGIS 3.4"
 )
 }
 
 # Produce second set of predictions
-if(produce.futuremodels) {
-    maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
-              obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
-              studydir = paste0(experiment.folder,"/mapsderived/futurestack"),
-              modelfile = paste0(experiment.folder, "/dataderived/maxentmodelfuture.rds"),
-              evalfile = paste0(experiment.folder, "/dataderived/maxentevalfuture.rds"),
-              outfile  = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
-              nc = 10   
-     )
+if(predict.futuremodels) {
+    predictor(mapdir = paste0(experiment.folder,"/mapsderived/futurestack"),
+              model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
+              outfile = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
+              nc =10    
+    )
+
 }
 
 # Finally select reserves on that code
