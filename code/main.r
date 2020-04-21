@@ -155,14 +155,12 @@ if(predict.futuremodels) {
 
 # Finally select reserves on that code
 if(produce.actualfuture) {
-    zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualityfuture/maxentprediction.tif"),
+    zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
            sigma = sigma, 
-           reserves = , 
-           constrain =, 
-           out.folder = 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain = paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           out.folder = paste0(experiment.folder, "/mapsderived/futurequality")
            )
-
-
 }
 
 # TODO: add a map that  reforests the entire area of the AES tiete, so we can compare potential reforestation efforts with the predict reforestation effort.

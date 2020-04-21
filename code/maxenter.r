@@ -42,7 +42,7 @@ presence.testquali <- predict(model, as.data.frame(raster::extract(obsstack, st_
 absence.testquali  <- predict(model, as.data.frame(raster::extract(obsstack, absences[absences.test==1,]))  )
 auc.test <- evaluate(presence.testquali,absence.testquali)
 saveRDS(auc.test, file = evalfile)
-
+print(auc.test)
 
 return(modelfile)
 

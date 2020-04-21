@@ -17,7 +17,7 @@
 predictor <- function(mapdir, model, outfile, nc) {
 
 studystack <-  stack(list.files(mapdir,pattern="tif$",full.names=T))
-model <-readRDS("./experiment004/dataderived/maxentmodelfuture.rds")
+model <-readRDS(model)
 
 # FOR DEBUG:
 #studystack <-  crop(studystack, extent(500000,501000,-1250000,-1245000))
