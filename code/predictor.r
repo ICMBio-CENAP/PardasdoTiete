@@ -21,12 +21,12 @@ model <-readRDS(model)
 
 # FOR DEBUG:
 #studystack <-  crop(studystack, extent(500000,501000,-1250000,-1245000))
-#test <- predict(studystack,model, filename="./experiment004/mapsderived/qualityfuture/maxentpredictiontest.tif")
+predict(studystack,model, filename=outfile)
 
 # Use predict with clusterR to speed up process
-beginCluster(nc)
-clusterR(studystack, predict, args = list(model = model), filename = outfile )
-endCluster()
+# beginCluster(nc)
+# clusterR(studystack, predict, args = list(model = model), filename = outfile )
+# endCluster()
 
 return(outfile)
 

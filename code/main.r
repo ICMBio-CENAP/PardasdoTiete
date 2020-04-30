@@ -34,12 +34,14 @@ library(rgdal)
 source("./code/data importer.r")
 source("./code/envpreparator (function).r")
 source("./code/maxenter.r")
+source("./code/predictor.r")
 source("./code/sigma calculator.r")
 source("./code/zoner.r")
 source("./code/app preparer.r")
 source("./code/quota organizer.r")
+source("./code/ranker.r")
 
-experiment.folder <- "./experiment004"
+experiment.folder <- "./experiment005"
 res<-30
 
 ## Load QGIS and gdal variables, also run two code lines to activate grass7 modules on qgis
@@ -61,12 +63,18 @@ py_run_string("Grass7Utils.checkGrassIsInstalled()")
 library(lwgeom)
 
 ## add which values to calculate
-produce.gpkg        <- TRUE
-produce.studystack  <- TRUE
-produce.models      <- TRUE
-produce.actual      <- TRUE
-organize.cota       <- TRUE
-organize.app        <- TRUE
+produce.gpkg         <- TRUE
+produce.studystack   <- TRUE
+produce.models       <- TRUE
+organize.cota        <- TRUE
+organize.app         <- TRUE
+produce.actual       <- TRUE
+produce.ranks        <- TRUE
+produce.futurestack  <- TRUE
+predict.futuremodels <- TRUE
+produce.actualfuture <- TRUE
+produce.ranksfuture  <- TRUE
+
 
 if(produce.gpkg) { 
     data.importer(derivdir   = paste0(experiment.folder,"/dataderived"),
@@ -79,21 +87,22 @@ if(produce.gpkg) {
 if(produce.studystack ) {
     envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
                tempdir   =   paste0(experiment.folder, "/mapsderived/studyarea"),
-               finalrds  = "experiment004map.rds",
+               finalrds  = "experiment005map.rds",
                res=res,
                overwrite.gb = TRUE,
                qgis.folder  = "C:/Program Files/QGIS 3.4"
 )
+print("completed study stack")
 }
 if(produce.models) {
     maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
               obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
-              studydir = paste0(experiment.folder,"/mapsderived/studyarea"),
-              modelfile = paste0(experiment.folder, "/dataderived/maxentmodel.rds")
+              modelfile = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
               evalfile = paste0(experiment.folder, "/dataderived/maxenteval.rds"),
               nc = 10   
      )
 }
+print("maxent complete")
 if(predict.models) {
     predictor(mapdir = paste0(experiment.folder,"/mapsderived/studyarea"),
               model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
@@ -129,6 +138,16 @@ if(produce.actual) {
            )
 }
 
+if(produce.ranks) {
+    ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+           sigma = sigma, 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           out.folder = paste0(experiment.folder, "/mapsderived/currentquality")
+           )
+}
+
+
 ## Reforested world scenarios (4 & 5)
 
 # Get future land use
@@ -163,4 +182,11 @@ if(produce.actualfuture) {
            )
 }
 
-# TODO: add a map that  reforests the entire area of the AES tiete, so we can compare potential reforestation efforts with the predict reforestation effort.
+if(produce.futureranks) {
+    ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
+           sigma = sigma, 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           out.folder = paste0(experiment.folder, "/mapsderived/futurequality")
+           )
+}

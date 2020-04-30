@@ -36,7 +36,7 @@ run_qgis(alg   = "saga:gaussianfilter",
          INPUT = normalizePath(quality.map), 
          SIGMA = sigma, 
          MODE  = 1,
-         RESULT= paste0(out.folder,"/qualityblurred.tif")
+         RESULT= paste0(out.folder,"/qualityblurred.sdat")
          )
 
 # Constrain it to AES tiete regions

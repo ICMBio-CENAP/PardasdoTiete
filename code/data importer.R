@@ -34,7 +34,7 @@ data.importer <-  function(derivdir, rawdir, tempdir, res, qgis.folder, crs =NUL
     # Finally changes the timezone to UTC, because read_xlsx assumes data are following the local timezone
     fixes <- read_xlsx(paste0(derivdir,"/Pardas_do_Tiete_todos_individuos.xlsx"))
     colnames(fixes) <- c("Name","timestamp","Latitude","Longitude")
-    tz(fixes$timestamp) <- "UTC"
+    fixes$timestamp <- as.POSIXct(strptime(fixes$timestamp, format = "%d/%m/%Y %H:%M:%S", tz="UTC"))
     
 
     ### Use a left join with meta.data to find releasedates and eliminate animals from it.
@@ -48,8 +48,11 @@ data.importer <-  function(derivdir, rawdir, tempdir, res, qgis.folder, crs =NUL
             dplyr::select( - release.date.utc)
 
 
-    ### creating spatial object and converting it to Albers equal area
+    ### creating spatial object, eliminating points outside area and converting it to Albers equal area
+    SP <- getData(name = "GADM",country = "BRA",level=1) %>% st_as_sf() %>% filter(HASC_1=="BR.SP")
+
     fixes.geo <- st_as_sf(fixes, coords = c("Longitude","Latitude"), crs = 4326) %>%
+                filter(., c(st_intersects(.,SP, sparse=F))) %>%
                 st_transform(crs=crs) %>%
                 mutate(Longitude  = st_coordinates(.)[,1], Latitude = st_coordinates(.)[,2]) 
                 
@@ -58,6 +61,7 @@ data.importer <-  function(derivdir, rawdir, tempdir, res, qgis.folder, crs =NUL
     ### creates the maps for extracting ssf values             
     st_buffer(fixes.geo, 20000) %>% 
     st_union() %>% 
+    st_intersection(st_transform(SP, crs=crs)) %>%
     envpreparator(finalrds = "observedstack.rds", 
                   tempdir= tempdir, res= res,
                   qgis.folder = qgis.folder

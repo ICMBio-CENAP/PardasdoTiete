@@ -17,6 +17,7 @@
 maxenter <- function(data, obsdir, modelfile = NULL, evalfile, nc) {
 
 # Read data, and select some locations to be the train and test dataset.
+rasterOptions(maxmemory = 1e+06)
 presences <- st_read(data)
 presences$test <- sample(0:1,nrow(presences), prob =c(0.8,0.2), replace=T)
     
