@@ -40,13 +40,16 @@ run_qgis(alg   = "saga:gaussianfilter",
          )
 
 # Constrain it to AES tiete regions
+if(!is.null(constrain)) {
 run_qgis(alg = "gdal:cliprasterbymasklayer",
          INPUT = normalizePath(paste0(out.folder,"/qualityblurred.sdat")),
          MASK = constrain,
          CROP_TO_CUTLINE = TRUE,
          OUTPUT = paste0(out.folder,"/qualityinAES.tif")
 )
-
+} else {
+    writeRaster(raster(paste0(out.folder,"/qualityblurred.sdat")), paste0(out.folder,"/qualityinAES.tif"))
+}
 
 # Get quality inside existing reserves
 AESareas  <- raster( paste0(out.folder,"/qualityinAES.tif")) 

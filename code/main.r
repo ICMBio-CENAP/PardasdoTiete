@@ -190,3 +190,45 @@ if(produce.futureranks) {
            out.folder = paste0(experiment.folder, "/mapsderived/futurequality")
            )
 }
+
+### versions for the entire study area
+
+if(produce.actual) {
+    zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+           sigma = sigma, 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain = NULL, 
+           out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal")
+           )
+}
+
+if(produce.ranks) {
+    ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+           sigma = sigma, 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain =  NULL, 
+           out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal")
+           )
+}
+
+
+## Reforested world scenarios (4 & 5)
+
+# Finally select reserves on that code
+if(produce.actualfuture) {
+    zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
+           sigma = sigma, 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain = NULL, 
+           out.folder = paste0(experiment.folder, "/mapsderived/futurequalitytotal")
+           )
+}
+
+if(produce.futureranks) {
+    ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
+           sigma = sigma, 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           constrain =  NULL, 
+           out.folder = paste0(experiment.folder, "/mapsderived/futurequalitytotal")
+           )
+}

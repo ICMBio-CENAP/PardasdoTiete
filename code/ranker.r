@@ -36,12 +36,19 @@ run_qgis(alg   = "saga:gaussianfilter",
 quality <- raster(paste0(out.folder,"/qualityblurred2.sdat"))
 
 spreserves  <- readOGR(reserves) 
+
+if(!is.null(constrain)) {
 spconstrain <- readOGR(constrain)
 
 qualityconst <- quality %>% 
                 crop(spconstrain) %>%
                 mask(spconstrain) %>%
                 mask(spreserves, inverse=T)
+} else {
+    qualityconst <- quality %>% 
+                mask(spreserves, inverse=T)
+}
+
 
 opt <- qualityconst
 opt[] <- rank(values(qualityconst), na.last="keep")
