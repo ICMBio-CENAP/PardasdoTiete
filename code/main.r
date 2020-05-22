@@ -17,6 +17,7 @@
 
 # Load dependencies
 options(java.parameters = "-Xmx2g" )
+library(igraph)
 library(raster)
 library(gdalUtils)
 library(dismo)
@@ -29,7 +30,7 @@ library(parallel)
 library(stringi)
 library(amt)
 library(rgdal)
-
+Sys.getenv("GDAL_DATA")
 
 source("./code/data importer.r")
 source("./code/envpreparator (function).r")
@@ -40,6 +41,8 @@ source("./code/zoner.r")
 source("./code/app preparer.r")
 source("./code/quota organizer.r")
 source("./code/ranker.r")
+source("./code/corridor designer.r")
+source("./code/pather.r")
 
 experiment.folder <- "./experiment005"
 res<-30
@@ -47,7 +50,7 @@ res<-30
 ## Load QGIS and gdal variables, also run two code lines to activate grass7 modules on qgis
 
 qgis.folder <- "C:/Program Files/QGIS 3.4"
-Sys.setenv(GDAL_DATA = paste0(qgis.folder, "\\share\\gdal"))
+Sys.setenv(GDAL_DATA = paste0(qgis.folder, "/share/gdal"))
 Sys.setenv(PROJ_LIB  = paste0(qgis.folder, "\\share\\proj"))
 set_env(qgis.folder)
 open_app()
@@ -107,10 +110,13 @@ if(predict.models) {
     predictor(mapdir = paste0(experiment.folder,"/mapsderived/studyarea"),
               model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
               outfile = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
-              nc =10    
+              cost = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcost.tif"    
     )
 
 }
+
+
+
 
 if(organize.cota) {
     quota.organizer( forestmap   = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
@@ -167,7 +173,8 @@ if(predict.futuremodels) {
     predictor(mapdir = paste0(experiment.folder,"/mapsderived/futurestack"),
               model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
               outfile = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
-              nc =10    
+              cost = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcostfuture.tif"    
+   
     )
 
 }
@@ -191,7 +198,7 @@ if(produce.futureranks) {
            )
 }
 
-### versions for the entire study area
+##### versions for the entire study area #####
 
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
@@ -231,4 +238,11 @@ if(produce.futureranks) {
            constrain =  NULL, 
            out.folder = paste0(experiment.folder, "/mapsderived/futurequalitytotal")
            )
+}
+
+if(produce.corridors) {
+    corridor.designer(optimal = paste0(experiment.folder, "/mapsderived/currentquality/optimalplaces.tif"),
+                      cost = paste0(experiment.folder, "/mapsderived/qualitypredictions/maxentcost.tif"),
+                      outfile = "./mapsderived/currentquality/corridors.gpkg"  
+    )
 }

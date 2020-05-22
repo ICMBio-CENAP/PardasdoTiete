@@ -14,14 +14,15 @@
 
 # Output: A spatial model representing the predicted map.
 
-predictor <- function(mapdir, model, outfile, nc) {
+predictor <- function(mapdir, model, outfile, cost) {
 
 studystack <-  stack(list.files(mapdir,pattern="tif$",full.names=T))
 model <-readRDS(model)
 
 # FOR DEBUG:
 #studystack <-  crop(studystack, extent(500000,501000,-1250000,-1245000))
-predict(studystack,model, filename=outfile)
+pred <- predict(studystack,model, filename=outfile)
+cost <- calc(pred,function(x) {1-x}, filename = cost)
 
 # Use predict with clusterR to speed up process
 # beginCluster(nc)
