@@ -86,24 +86,25 @@ for(a in 1:nrow(combs) ) {
     # calculation. Add a buffer of 30m to avoid having destination
     # points outside this extent.
     extent <- st_bbox(rbind(or,dest))[c("xmin","xmax","ymin","ymax")]
-    extent <- extent + c(-30,30,-30,30)
+    extent <- extent + c(-120,120,-120,120)
     extent <- paste(extent, collapse=",")
 
     # Calculate accumulated cost surface. Might take a while.
     # it assumes a starting point in the origin
-	sucess <- try(
-    		run_qgis("grass7:r.cost", 
-            	input = cost,
-            	start_coordinates = paste( st_coordinates(or), collapse=","),
-            	stop_coordinates  = paste( st_coordinates(dest), collapse=","),
-            	output = filecost,
-            	outdir = filedir
-   		 )
-	)
+	bat <- shQuote("C:/Program Files/QGIS 3.4/bin/python-qgis.bat")
+	script <- shQuote(normalizePath("./code/exploratory code/r.cost wrapper.py"))
+    x <- shQuote(paste(st_coordinates(or),collapse=","))
+    y <- shQuote(paste(st_coordinates(dest),collapse=","))
+    map <- shQuote(normalizePath(cost))
+    fld <- shQuote(filedir)
+    flc <- shQuote(filecost)
+    ext <- shQuote(extent)
 
-	if(class(sucess) != "try-error") {
-    # tracest he path back between the destination point and the origin on this
-    # accumulation map.
+    system(paste(bat,script,x,y,map,fld,flc,ext))
+    if(!file.exists(filedir)) {stop(paste("file", x, y,"was not created"))}
+    
+
+
     pathpoints <- pather(raster(filedir),st_coordinates(dest))
     if(nrow(pathpoints)==1) {"only one point was found"}
     lcline   <- st_linestring(pathpoints)
@@ -111,7 +112,6 @@ for(a in 1:nrow(combs) ) {
     st_write(linessfc,dsn = gpkgfile)
     files[[a]] <- gpkgfile
     costsucess[[a]] <- TRUE
-} else {files[[a]] <- NA; costsucess[[a]] <- FALSE }
 
 }
 
