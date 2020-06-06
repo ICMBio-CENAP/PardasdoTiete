@@ -10,7 +10,7 @@
 # Following a discussion with Ronaldo, we opted for using the arbitrary
 # value of the average step-length on 1h across individuals.
 # We reason that this represent animal decision making in a situation where
-# they do not the environment. Under these conditions, animals would only use
+# they do not known the environment. Under these conditions, animals would only use
 # their immediate surroundings for decision making.
 
 # Input:

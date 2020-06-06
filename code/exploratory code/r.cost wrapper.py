@@ -28,7 +28,7 @@ from processing.core.Processing import Processing
 Processing.initialize()
 QgsApplication.processingRegistry().addProvider(QgsNativeAlgorithms())
 
-
+processing.algorithmHelp("grass7:r.drain")
 #processing.algorithmHelp("grass7:r.cost")
 processing.run("grass7:r.cost",
     {"input": args[2], 
