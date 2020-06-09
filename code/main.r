@@ -30,6 +30,7 @@ library(parallel)
 library(stringi)
 library(amt)
 library(rgdal)
+library(dbscan)
 Sys.getenv("GDAL_DATA")
 
 source("./code/data importer.r")
@@ -41,7 +42,7 @@ source("./code/zoner.r")
 source("./code/app preparer.r")
 source("./code/quota organizer.r")
 source("./code/ranker.r")
-source("./code/corridor designer.r")
+source("./code/corridor creator.r")
 source("./code/pather.r")
 
 experiment.folder <- "./experiment005"
@@ -79,6 +80,10 @@ produce.actualfuture <- TRUE
 produce.ranksfuture  <- TRUE
 
 
+
+##### PREPARE HABITAT SELECTION MODEL #####
+
+
 if(produce.gpkg) { 
     data.importer(derivdir   = paste0(experiment.folder,"/dataderived"),
                   rawdir     = paste0("./raw/data 17.12.19"), 
@@ -87,16 +92,7 @@ if(produce.gpkg) {
                   qgis.folder = "C:/Program Files/QGIS 3.4"
                   )
 }
-if(produce.studystack ) {
-    envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
-               tempdir   =   paste0(experiment.folder, "/mapsderived/studyarea"),
-               finalrds  = "experiment005map.rds",
-               res=res,
-               overwrite.gb = TRUE,
-               qgis.folder  = "C:/Program Files/QGIS 3.4"
-)
-print("completed study stack")
-}
+
 if(produce.models) {
     maxenter( data     = paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
               obsdir   = paste0(experiment.folder,"/mapsderived/observedstack"),
@@ -106,17 +102,18 @@ if(produce.models) {
      )
 }
 print("maxent complete")
-if(predict.models) {
-    predictor(mapdir = paste0(experiment.folder,"/mapsderived/studyarea"),
-              model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
-              outfile = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
-              cost = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcost.tif"    
-    )
 
-}
+
+sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
+
+
+##### END HABITAT SELECTION MODELLING #####
 
 
 
+
+
+##### ORGANIZE RESERVE DATA FROM AES TIETE #####
 
 if(organize.cota) {
     quota.organizer( forestmap   = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
@@ -132,9 +129,39 @@ if(organize.app) {
                   )
 }
 
-sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
+##### END RESERVE DATA ORGANIZING #####
 
 
+
+
+
+
+
+
+
+##### SECTION FOR AES DESAPROPRIATION ZONE #####
+
+### Results for present forest cover ###
+
+if(produce.studystack ) {
+    envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
+               tempdir   =   paste0(experiment.folder, "/mapsderived/studyarea"),
+               finalrds  = "experiment005map.rds",
+               res=res,
+               overwrite.gb = TRUE,
+               qgis.folder  = "C:/Program Files/QGIS 3.4"
+)
+print("completed study stack")
+}
+
+if(predict.models) {
+    predictor(mapdir = paste0(experiment.folder,"/mapsderived/studyarea"),
+              model  = paste0(experiment.folder, "/dataderived/maxentmodel.rds"),
+              outfile = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
+              cost = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcost.tif"    
+    )
+
+}
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
@@ -154,7 +181,7 @@ if(produce.ranks) {
 }
 
 
-## Reforested world scenarios (4 & 5)
+### Results for future forest cover ###
 
 # Get future land use
 if(produce.futurestack) {
@@ -198,7 +225,21 @@ if(produce.futureranks) {
            )
 }
 
-##### versions for the entire study area #####
+
+
+
+
+
+
+
+
+
+##### SECTION FOR THE ENTIRE STUDY AREA #####
+# THIS CODE RESUSES ENVPREPARATOR() AND PREDICTOR()'S RESULTS FROM PREVIOUS STEPS #
+# MAKE SURE TO RUN IT BEFORE THIS SECTION #
+
+### Results for present forest cover ###
+
 
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
@@ -217,9 +258,19 @@ if(produce.ranks) {
            out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal")
            )
 }
+function(optimal, cost, pythonbat, script, outdir, outfile)
+if(produce.corridors) {
+    corridor.creator( optimal   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/optimalplaces.tif"),
+                      cost      = paste0(experiment.folder, "/mapsderived/qualitypredictions/maxentcost.tif"),
+                      pythonbat = "C:/Program Files/QGIS 3.4/bin/python-qgis.bat",
+                      script    = "./code/r.cost wrapper.py",
+                      outdir    = paste0(experiment.folder, "/mapsderivd/currentqualitytotal/corridors"),
+                      outfile   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridors.gpkg")
+    )
+}
 
 
-## Reforested world scenarios (4 & 5)
+### Results for future forest cover ###
 
 # Finally select reserves on that code
 if(produce.actualfuture) {
@@ -240,9 +291,3 @@ if(produce.futureranks) {
            )
 }
 
-if(produce.corridors) {
-    corridor.designer(optimal = paste0(experiment.folder, "/mapsderived/currentquality/optimalplaces.tif"),
-                      cost = paste0(experiment.folder, "/mapsderived/qualitypredictions/maxentcost.tif"),
-                      outfile = "./mapsderived/currentquality/corridors.gpkg"  
-    )
-}
