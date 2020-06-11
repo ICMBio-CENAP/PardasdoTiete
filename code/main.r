@@ -106,7 +106,7 @@ print("maxent complete")
 
 
 sigma <- sigma.calculator( paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
-
+avgdist <- avgdistance.calculator(paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
 
 ##### END HABITAT SELECTION MODELLING #####
 
@@ -264,7 +264,7 @@ if(produce.corridors) {
     corridor.creator( optimal   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/optimalplaces.tif"),
                       cost      = paste0(experiment.folder, "/mapsderived/qualitypredictions/maxentcost.tif"),
                       existing  = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg")
-                      dist      = 
+                      dist      = avgdist
                       pythonbat = "C:/Program Files/QGIS 3.4/bin/python-qgis.bat",
                       script    = "./code/r.cost wrapper.py",
                       outdir    = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors"),
