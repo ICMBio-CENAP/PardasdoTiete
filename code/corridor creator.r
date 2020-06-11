@@ -1,28 +1,32 @@
 #' ---
-#' title: 'Path calculator '
+#' title: 'Corridor creator'
 #' author: Jorge Menezes    - CENAP/ICMBio
 #' ---
 
 # Intent: 
 
 # This function takes a map of the selected areas, and another map indicating the quality for the jaguars. 
-# It tries to calculate reserves clusters, which area reserves whose centroids are less than one day away
+# It tries to calculate reserves clusters, which are  reserves whose centroids are less than one day away
 # from a jaguar walking on a straight line. The least cost path between these clusters is then calculated.
 
 # Input:  
 
 # optimal: a binary raster file with 1 for pixels selected for reserves 0
 # for non selected
-# cost : a raster with a valuerepresenting how hard it is for the animal to transverse 
+# cost : a raster with a value representing how hard it is for the animal to transverse 
 # the environment. It is the opposite of the quality. Must be positive though.
-# outfile: The filepath for a geodatabase containing the leastcost paths for corridors.
+# existing: existing reserves to be combined with ideal ones in the optimal calculation
+# pythonbat: path to pythonfile that can execute pyqgis commands
+# script: path to the python script for calculation of the least cost paths.
+# outdir: directory for temporary files resulting from pyqgis script.
+# outcor: The filepath for a geodatabase containing the leastcost paths for corridors.
+# outcent: The filepath for a geodatabase containing the centroids of each reserve, along
+# with their cluster association.
 
 # Output:
-# AA geopackage with the best corridors selects, as represented by lines.
+# AA geopackage with all corridors between clusters.
 
-# get_args_man("grass7:r.drain")
-
-corridor.creator <-  function(optimal, cost, pythonbat, script, outdir, outfile) {
+corridor.creator <-  function(optimal, cost, existing, dist,  pythonbat, script, outdir, outcor,outcent) {
 cost <- normalizePath(cost)
 
 # Create area polygons
@@ -31,14 +35,21 @@ areas    <- rasterToPolygons(optimal,fun = function(x){x==1},n=8,dissolve=T)
 areas_sf <- st_as_sf(areas)
 areas_sf <- st_cast(areas_sf, "POLYGON")
 
+# read existing reserves and add them to expectation
+existing <- st_read(existing)
+areas_sf <- st_union(areas_sf,existing)
 
 # Get centroids and create clusters
-cents <- st_centroid(areas_sf)
+cents      <- st_centroid(areas_sf)
 cent_dists <- dist(st_coordinates(cents))
-cluster_id <- dbscan(cent_dists, eps=7200, minPts=1)$cluster
-clusters  <- unique(cluster_id)
+cluster_id <- dbscan(cent_dists, eps=dist, minPts=1)$cluster
+clusters   <- unique(cluster_id)
 areas_sf   <- cbind(areas_sf, cluster_id)
-#browser()
+cents_sf   <- cbind(cents,cluster_id)
+
+# Save areas_sf and cents_sf for future reuse
+st_write(areas_sf,dsn=paste0(outdir,"/reservesvect.gpkg"))
+st_write(cents_sf,dsn=paste0(outdir,"/reservescent.gpkg"))
 
 
 # Start path calculations
@@ -71,14 +82,17 @@ file.remove(listremove)
 
 # Read all shape files
 paths <- lapply(allpaths,st_read)
-
-# Associate information with original cluster and destination cluster
-for(a in 1:length(paths)) {
-    paths[[a]] <- cbind(paths[[a]],cluster_org=a, cluster_dest= cluster_id[paths[[a]]$cat])
-}
-
 paths <- do.call(rbind,paths)
-#outfile="./experiment005/mapsderived/currentqualitytotal/corridors/corridors.gpkg"
-st_write(paths,dsn=outfile)
 
+# Write in a temporary file 
+st_write(paths,dsn=tempfile(fileext=".gpkg",tempdir=outdir)
+
+# Load files using terrapackage for fast extraction of corridor values
+cost <- rast(cost)
+corridors <- vect(corridors)
+corridorvalue <- terra::extract(cost,corridors,fun=sum)
+corridorvalue <- c(corridorvalue)
+
+paths<- cbind(paths, corridorvalue=corridorvalue)
+st_write(paths=outfile)
 }

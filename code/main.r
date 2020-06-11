@@ -17,6 +17,7 @@
 
 # Load dependencies
 options(java.parameters = "-Xmx2g" )
+library(terra)    
 library(igraph)
 library(raster)
 library(gdalUtils)
@@ -258,14 +259,25 @@ if(produce.ranks) {
            out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal")
            )
 }
-function(optimal, cost, pythonbat, script, outdir, outfile)
+
 if(produce.corridors) {
     corridor.creator( optimal   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/optimalplaces.tif"),
                       cost      = paste0(experiment.folder, "/mapsderived/qualitypredictions/maxentcost.tif"),
+                      existing  = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg")
+                      dist      = 
                       pythonbat = "C:/Program Files/QGIS 3.4/bin/python-qgis.bat",
                       script    = "./code/r.cost wrapper.py",
-                      outdir    = paste0(experiment.folder, "/mapsderivd/currentqualitytotal/corridors"),
-                      outfile   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridors.gpkg")
+                      outdir    = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors"),
+                      outcor    = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridors.gpkg"),
+                      outcent   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/cents.gpkg")
+    )
+}
+
+if(produce.corridors) {
+    corridor.designer(corridors  = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridors.gpkg"),
+                      cents      = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/cents.gpkg"),
+                      dist       = 
+                      outfile    = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridors.gpkg")
     )
 }
 
