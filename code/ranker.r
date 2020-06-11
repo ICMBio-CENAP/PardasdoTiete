@@ -23,7 +23,7 @@
 # A vector map containing the rank of each remaining cell
 
 
-ranker <- function( quality.map, sigma, reserves, constrain, out.folder) {
+ranker <- function( quality.map, sigma, reserves, constrain=NULL, maskbyvalue=NULL, out.folder) {
 
 # Producing blurred image
 run_qgis(alg   = "saga:gaussianfilter", 
@@ -48,6 +48,11 @@ qualityconst <- quality %>%
     qualityconst <- quality %>% 
                 mask(spreserves, inverse=T)
 }
+if(!is.null(maskbyvalue)){
+    qualityconst <- qualityconst %>%
+                mask(maskbyvalue=maskbyvalue)
+}
+
 
 
 opt <- qualityconst
