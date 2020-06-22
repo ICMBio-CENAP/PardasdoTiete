@@ -45,7 +45,7 @@ g <- graph_from_data_frame(selectedcorrs.df, directed=F)
 gopt <-  mst(g,weights = selectedcorrs$corridorvalue )
 
 # Convert it back to data.frame
-selected <- as_data_frame(gopt, what="edges")
+selected <- igraph::as_data_frame(gopt, what="edges")
 
 # Select lines in corridors that have the origin and destination in selected
 mstcorridors <- list()
@@ -69,7 +69,7 @@ endfinder <-  function(lines, points) {
     # cast vertices to point, and take first and last points
     # st_cast could work for the entire dataset, but it is greatly increase memory 
     # consumption.
-    endpoints <- st_line_sample(corridors,sample=c(0,1))
+    endpoints <- st_line_sample(lines,sample=c(0,1))
     endpoints <- st_cast(endpoints,"POINT")
     # get the nearest point from the point feature and take its cluster info
     nearpoints <- st_nearest_feature(endpoints,points)

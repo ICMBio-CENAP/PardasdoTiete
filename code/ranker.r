@@ -23,7 +23,7 @@
 # A vector map containing the rank of each remaining cell
 
 
-ranker <- function( quality.map, sigma, reserves, constrain=NULL, maskbyvalue=NULL, out.folder) {
+ranker <- function( quality.map, sigma, reserves, constrain=NULL, maskbyvalue=NULL, out.folder,outfile) {
 
 # Producing blurred image
 run_qgis(alg   = "saga:gaussianfilter", 
@@ -50,14 +50,14 @@ qualityconst <- quality %>%
 }
 if(!is.null(maskbyvalue)){
     qualityconst <- qualityconst %>%
-                mask(maskbyvalue=maskbyvalue)
+                subs(data.frame(maskbyvalue,NA),subsWithNA=F)
 }
 
 
 
 opt <- qualityconst
 opt[] <- rank(values(qualityconst), na.last="keep")
-writeRaster(opt, filename =  paste0(out.folder,"/optimalrankadd.tif"), overwrite=T)
+writeRaster(opt, filename =  paste0(out.folder,outfile), overwrite=T)
 
 cat("rank on",quality.map,"complete")
 

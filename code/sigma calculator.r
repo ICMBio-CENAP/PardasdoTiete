@@ -26,8 +26,8 @@ sigma.calculator <- function(infile) {
     # Load data and convert it to amt format
     data <- st_read(infile) 
     crs  <- st_crs(data)[[2]]
-    data <- mk_track(data, .x = "Longitude", .y = "Latitude", .t = timestamp, 
-                      crs = CRS(crs), ID, Name)
+    data <- mk_track(data, .x = Longitude, .y = Latitude, .t = timestamp, 
+                      crs = CRS(crs), Name)
     
     # Reorder values based on name and then timestamp
     data <- data[order(data$Name,data$t_),]

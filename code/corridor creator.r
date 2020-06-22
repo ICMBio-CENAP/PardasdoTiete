@@ -28,6 +28,10 @@
 
 corridor.creator <-  function(optimal, cost, existing, dist,  pythonbat, script, outdir, outcor,outcent) {
 cost <- normalizePath(cost)
+bat    <- shQuote(pythonbat)
+script <- shQuote(normalizePath(script))
+outdirshquote <- shQuote(normalizePath(outdir))
+map    <- shQuote(cost)
 
 # Create area polygons
 optimal  <- raster(optimal)
@@ -36,14 +40,15 @@ areas_sf <- st_as_sf(areas)
 areas_sf <- st_cast(areas_sf, "POLYGON")
 
 # read existing reserves and add them to expectation
-existing <- st_read(existing)
-areas_sf <- st_union(areas_sf,existing)
+#existing <- st_read(existing)
+#areas_sf <- st_union(areas_sf,existing)
 
 # Get centroids and create clusters
 cents      <- st_centroid(areas_sf)
 cent_dists <- dist(st_coordinates(cents))
 cluster_id <- dbscan(cent_dists, eps=dist, minPts=1)$cluster
 clusters   <- unique(cluster_id)
+cat("found",max(clusters), "reserve clusters \n")
 areas_sf   <- cbind(areas_sf, cluster_id)
 cents_sf   <- cbind(cents,cluster_id)
 
@@ -66,14 +71,9 @@ for(a in 1:length(clusters)) {
     st_write(cents[cluster_id!=clusters[a],], dsn=dests)
     dests <- shQuote(dests)
 
-    bat    <- shQuote(pythonbat)
-	script <- shQuote(normalizePath(script))
-    outdir <- shQuote(normalizePath(outdir))
-    map    <- shQuote(cost)
 
-
-    allpaths[[a]]<-system(paste(bat,script,cost,origin,dests,outdir), intern=T)[2]
-
+    allpaths[[a]]<-system(paste(bat,script,cost,origin,dests,outdirshquote), intern=T)[2]
+    unlink(list.files(pattern="processing_","C:/Users/Jorge/AppData/Local/Temp",full.names=T),recursive=T)
 }
 
 # Remove temporary files
@@ -81,18 +81,17 @@ listremove <- list.files(outdir, pattern="(tif$|tfw$|xml$)",full.names=T)
 file.remove(listremove)
 
 # Read all shape files
-paths <- lapply(allpaths,st_read)
-paths <- do.call(rbind,paths)
-
-# Write in a temporary file 
-st_write(paths,dsn=tempfile(fileext=".gpkg",tempdir=outdir)
-
-# Load files using terrapackage for fast extraction of corridor values
+allpaths <- list.files(outdir,pattern=".shp",full.names=T)
 cost <- rast(cost)
-corridors <- vect(corridors)
-corridorvalue <- terra::extract(cost,corridors,fun=sum)
-corridorvalue <- c(corridorvalue)
+for( a in 1:length(allpaths)) {
+    corridors <- vect(allpaths[[a]])
+    corridorvalue <- terra::extract(cost,corridors,fun=sum)
+    corridorvalue <- c(corridorvalue)
+    rm(corridors)
+    st_read(allpaths[[a]]) %>% 
+    cbind(corridorvalue=corridorvalue) %>% 
+    st_write(dsn=outcor,update=T)
 
-paths<- cbind(paths, corridorvalue=corridorvalue)
-st_write(paths=outfile)
+}
+
 }
