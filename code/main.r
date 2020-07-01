@@ -17,6 +17,8 @@
 
 # Load dependencies
 options(java.parameters = "-Xmx2g" )
+library(dplyr)
+library(units)
 library(terra)    
 library(igraph)
 library(raster)
@@ -47,6 +49,7 @@ source("./code/corridor creator.r")
 source("./code/pather.r")
 source("./code/avgdistance calculator.r")
 source("./code/corridor designer.r")
+source("./code/price calculator.r")
 
 experiment.folder <- "./experiment006"
 res<-30
@@ -86,6 +89,7 @@ produce.futurecorridors <- TRUE
 produce.refranks        <- TRUE
 produce.futurerefranks  <- TRUE
 produce.futureranks     <- TRUE
+calculate.price         <- TRUE
 
 ##### PREPARE HABITAT SELECTION MODEL #####
 
@@ -319,7 +323,13 @@ if(produce.corridors) {
     )
 }
 
-
+if(calculate.price) {
+    price.calculator(corridors = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg"),
+                     poly = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/reservesvect.gpkg"),
+                     prices = paste0(experiment.folder,"/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg"),
+                     output = paste0(experiment.folder,"/mapsderived/currentqualitytotal/optimalpriced.gpkg")
+    )
+}
 ### Results for future forest cover ###
 
 # Finally select reserves on that code
@@ -369,5 +379,13 @@ if(produce.futurecorridors) {
     corridor.designer(corridors   = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/corridors.gpkg"),
                       cents       = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/reservescent.gpkg"),
                       destfile    = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/corridorssel.gpkg")
+    )
+}
+
+if(calculate.price) {
+    price.calculator(corridors = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/corridorssel.gpkg"),
+                     poly = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/reservesvect.gpkg"),
+                     prices = paste0(experiment.folder,"/mapsderived/futurequalitytotal/corridors/corridorssel.gpkg"),
+                     output = paste0(experiment.folder,"/mapsderived/futurequalitytotal/optimalpriced.gpkg")
     )
 }

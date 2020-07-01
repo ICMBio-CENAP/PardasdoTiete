@@ -8,8 +8,8 @@ library(lubridate)
 library(openxlsx)
 library(dplyr)
 
-locs <- st_read("./experiment004/dataderived/pardas_tiete_all_individuals.gpkg")
-metadata<- read.csv("./raw/data 17.12.19/meta_data.csv")
+locs <- st_read("./experiment006/dataderived/pardas_tiete_all_individuals.gpkg")
+metadata<- read.xlsx("./experiment006/dataderived/Metadata.xlsx")
 ## Figure 1: Period of collar activity from all the animals
 ## (data from December/2019)
 ggplot(locs,aes(x=timestamp, y=Name,col=Name)) + geom_point() +theme_bw() +xlab("tempo")+ylab("Nome do Animal")
@@ -35,15 +35,16 @@ gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
-boundaries<- readRDS("./maps/limites politicos/base gdam nivel 2.rds")
+
+boundaries<- readRDS("./raw/maps/limites politicos/base gdam nivel 2.rds")
 boundaries<- boundaries[boundaries$NAME_1=="São Paulo",]
 boundsp <- st_union(boundaries)
-studyarea <- st_read("./maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp") %>% st_transform(crs=4326)
+studyarea <- st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp") %>% st_transform(crs=4326)
 plot(boundaries$geometry,border="gray50",lty=1)
 plot(boundsp,lwd=2,add=T)
 plot(studyarea$geometry, lwd=2,lty=2,add=T)
-plot(locs["Name"] %>% st_transform(crs=4326),pch=16,pal=gg_color_hue(6),add=T)
-legend("topright",legend=sort(unique(locs$Name)),fill=gg_color_hue(6))
+plot(locs["Name"] %>% st_transform(crs=4326),pch=16,pal=gg_color_hue(length(unique(locs$Name))),add=T)
+legend("topright",legend=sort(unique(locs$Name)),fill=gg_color_hue(length(unique(locs$Name))))
 
 ## Figure 3: Individualized plot of animal trajectories.
 locs.classes <- readRDS("./experiment003/dataderived/mov.track.rds")

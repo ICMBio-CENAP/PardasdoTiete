@@ -19,6 +19,9 @@
 # Output:
 # A geopackage with corridors and polygons each with value of price
 
+
+# TODO: fix behavior where it works as a script but not as a function
+
 price.calculator <- function( corridors, polys, prices, output) {
 
 polys     <- st_read("./experiment006/mapsderived/currentqualitytotal/corridors/reservesvect.gpkg")
@@ -30,6 +33,7 @@ outfile   <- "./experiment006/mapsderived/currentqualitytotal/optimalpriced.gpkg
     corridors <-  st_read(corridors)
     polys     <-  st_read(polys)
     prices    <-  st_read(prices)
+    colnames(prices)[1:2] <- c("regiao","Preco.medio") # Fix problwm with UTF-8
     prices    <-  st_transform(prices,st_crs(polys))
 
  ## calculating prices for reserve polygons
@@ -39,7 +43,7 @@ outfile   <- "./experiment006/mapsderived/currentqualitytotal/optimalpriced.gpkg
 polys <- cbind(polys,id=1:nrow(polys))
 ints <- st_intersection(polys,prices)
 
-ints$price <- drop_units(ints$Preço.médio * st_area(ints)/10000)
+ints$price <- drop_units(ints$"Preco.medio" * st_area(ints)/10000)
 
 polys <- ints %>% 
         group_by(id) %>% 
@@ -56,7 +60,7 @@ ints <- st_intersection(corridors,prices)
 # FOR DEBUG:
 # mapview(ints,zcol="Preço.médio")
 
-ints$price <- drop_units(ints$Preço.médio * st_length(ints)*30/10000)
+ints$price <- drop_units(ints$"Preco.medio" * st_length(ints)*30/10000)
 corridors <- ints %>% 
         group_by(id) %>% 
         summarize(price = sum(price)) %>% 
