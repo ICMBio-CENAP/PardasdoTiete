@@ -48,6 +48,7 @@ source("./code/pather.r")
 source("./code/avgdistance calculator.r")
 source("./code/corridor designer.r")
 source("./code/price calculator.r")
+source("./code/presentation code/app preparer.r")
 
 experiment.folder <- "./experiment007"
 res<-30
@@ -90,6 +91,7 @@ calculate.price         <- TRUE
 produce.futurecorridors <- TRUE
 select.futurecorridors  <- TRUE
 produce.futureranks     <- TRUE
+deploy.app              <- TRUE
 
 
 ##### PREPARE HABITAT SELECTION MODEL #####
@@ -391,4 +393,19 @@ if(calculate.price) {
                      prices = "./raw/price data/SPGADM_priced.gpkg",
                      output = paste0(experiment.folder,"/mapsderived/futurequalitytotal/optimalpriced.gpkg")
     )
+}
+
+
+##### DEPLOYING SHINY APP #####
+if(deploy.app) {
+    apppreparer(mapnow    = paste0(experiment.folder,"/mapsderived/currentqualitytotal/optimalpriced.gpkg"),
+                mapfuture = paste0(experiment.folder,"/mapsderived/futurequalitytotal/optimalpriced.gpkg"),
+                studyarea = "./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp",
+                APPs      = paste0(experiment.folder, "/mapsderived/quotas/apps_sea.gpkg")
+                appfile   = "./code/presentation code/shinyapp/appfiles.gpkg"
+
+    )
+    rsconnect::setAccountInfo(name='jfsmenezes', token='987F91EC0A198AA15EEF90EA05AC10F3', secret='')
+    rsconnect::deployApp("./code/presentation code/shinyapp")
+
 }

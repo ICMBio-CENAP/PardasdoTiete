@@ -13,7 +13,7 @@
 # buy their services beforehand.
 
 #library(rsconnect)
-#rsconnect::setAccountInfo(name='jfsmenezes', token='715B40D3A39A9B5086CD21C5A330AD8E', secret='/kdnggbhR0wOFlSPeRGMRN023DLBFYdFuRZICQc0')
+#rsconnect::setAccountInfo(name='jfsmenezes', token='715B40D3A39A9B5086CD21C5A330AD8E', secret='')
 #rsconnect::deployApp("./code/presentation code/shinyapp")
 
 
@@ -49,13 +49,14 @@ server<- function(input,output) {
     library(sf)
     library(leafpop)
     
+    
     # Read pre-prepared data (check app preparer.r for details)
-    studyarea    <- st_read("study_area_prep.gpkg")
-    polys        <- st_read("optimalpricednow_prep.gpkg",layer="reserves") 
-    corridors    <- st_read("optimalpricednow_prep.gpkg",layer="corridors")
-    polysfut     <- st_read("optimalpricedfuture_prep.gpkg",layer="reserves")
-    corridorsfut <- st_read("optimalpricedfuture_prep.gpkg",layer="corridors")
-    polysaes     <- st_read("AESreserves.gpkg")
+    studyarea    <- st_read( "appfiles.gpkg", layer = studyarea     )
+    polys        <- st_read( "appfiles.gpkg", layer = reservesnow   )
+    corridors    <- st_read( "appfiles.gpkg", layer = corridorsnow  )
+    polysfut     <- st_read( "appfiles.gpkg", layer = reservesfut   )
+    corridorsfut <- st_read( "appfiles.gpkg", layer = corridorsfut  )
+    polysaes     <- st_read( "appfiles.gpkg", layer = apps          )
 
     # set color palletes for future reserves and current reserves.
     colorpoly    <- colorFactor(rainbow(length(unique(polys$cluster_id))), polys$cluster_id)
