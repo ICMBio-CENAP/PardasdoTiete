@@ -77,7 +77,7 @@ shapescomplete <- st_cast(shapescomplete, "POLYGON")
 shapescomplete <- st_make_valid(shapescomplete)
 shapescomplete <- shapescomplete[unclass(st_area(shapescomplete))>5,]
 
-st_write(shapescomplete, paste0(quotafolder,"/quotas.gpkg") )
-return( paste0(quotafolder,"/quotas.gpkg") )
+st_write(shapescomplete, paste0(quotafolder,"/quotas_sea.gpkg") )
+return( paste0(quotafolder,"/quotas_sea.gpkg") )
 
 }

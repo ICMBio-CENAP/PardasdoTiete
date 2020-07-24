@@ -22,7 +22,8 @@ envpreparator <- function(buffergeo,
                           reforesteddir = NULL, 
                           finalrds, 
                           res=30, 
-                          overwrite.gb = TRUE, 
+                          overwrite.gb = TRUE,
+                          baseproj = NULL, 
                           qgis.folder) {
 
 #debug: 
@@ -34,8 +35,9 @@ envpreparator <- function(buffergeo,
 # finalrds = "observedstack.rds"
 
 ### Base raster layer ###
-baseproj   <- "+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs" 
-
+if(is.null(baseproj)) {
+    baseproj   <- "+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs" 
+}
 #debug:
 # buffergeo <- st_read("D:/Trabalho/pardas do tiete/PardasdoTiete/test/dataderived/pardas_tiete_all_individuals.gpkg")
 # buffergeo <- st_transform(buffergeo, crs=baseproj) %>% st_buffer(20000) %>% st_union()

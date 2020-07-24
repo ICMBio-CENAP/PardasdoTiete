@@ -27,21 +27,21 @@ sigma.calculator <- function(infile) {
     data <- st_read(infile) 
     crs  <- st_crs(data)[[2]]
     data <- mk_track(data, .x = Longitude, .y = Latitude, .t = timestamp, 
-                      crs = CRS(crs), Name)
+                      crs = CRS(crs), name)
     
     # Reorder values based on name and then timestamp
-    data <- data[order(data$Name,data$t_),]
+    data <- data[order(data$name,data$t_),]
     
     # Resample every hour.
     rsp <- list()
-    for( a in 1:length(unique(data$Name))) {
-        tmp <- subset(data, data$Name == unique(data$Name)[a] )
+    for( a in 1:length(unique(data$name))) {
+        tmp <- subset(data, data$name == unique(data$name)[a] )
         rsp[[a]] <- track_resample(tmp,rate = hours(1), tolerance = minutes(10))
     }
 
     # take average step lenght per burst and individual
     data<- do.call(rbind,rsp)
-    data.split <- split(data, list(data$Name,data$burst_))
+    data.split <- split(data, list(data$name,data$burst_))
     data.split <- data.split[sapply(data.split,nrow)>3]
     sls <- lapply( data.split, function(x) step_lengths(x))
     average_step <- mean( do.call(c, sls), na.rm=T)

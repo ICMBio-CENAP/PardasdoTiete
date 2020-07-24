@@ -57,7 +57,7 @@ if(!is.null(maskbyvalue)){
 
 opt <- qualityconst
 opt[] <- rank(values(qualityconst), na.last="keep")
-writeRaster(opt, filename =  paste0(out.folder,outfile), overwrite=T)
+writeRaster(opt, filename =  paste0(out.folder,"/",outfile), overwrite=T)
 
 cat("rank on",quality.map,"complete")
 

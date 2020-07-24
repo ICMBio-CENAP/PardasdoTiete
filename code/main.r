@@ -12,8 +12,6 @@
 ## eventually, a set of reserves desings.
 
 
-#TODO: investigate varying buffer in envpreparator.
-#TODO: make sure we used all data and not just the last semesters of 2019
 
 # Load dependencies
 options(java.parameters = "-Xmx2g" )
@@ -51,7 +49,7 @@ source("./code/avgdistance calculator.r")
 source("./code/corridor designer.r")
 source("./code/price calculator.r")
 
-experiment.folder <- "./experiment006"
+experiment.folder <- "./experiment007"
 res<-30
 
 ## Load QGIS and gdal variables, also run two code lines to activate grass7 modules on qgis
@@ -73,33 +71,37 @@ py_run_string("Grass7Utils.checkGrassIsInstalled()")
 library(lwgeom)
 
 ## add which values to calculate
-produce.gpkg            <- TRUE
-produce.studystack      <- TRUE
-produce.models          <- TRUE
-organize.cota           <- TRUE
-organize.app            <- TRUE
-produce.actual          <- TRUE
-produce.ranks           <- TRUE
-produce.corridors       <- TRUE
-produce.futurestack     <- TRUE
-predict.futuremodels    <- TRUE
+produce.gpkg            <- FALSE
+produce.models          <- FALSE
+organize.cota           <- FALSE
+organize.app            <- FALSE
+produce.studystack      <- FALSE
+predict.models          <- FALSE
+produce.actual          <- FALSE
+produce.ranks           <- FALSE
+produce.refranks        <- FALSE
+produce.futurestack     <- FALSE
 produce.actualfuture    <- TRUE
-produce.ranksfuture     <- TRUE
-produce.futurecorridors <- TRUE
-produce.refranks        <- TRUE
-produce.futurerefranks  <- TRUE
 produce.futureranks     <- TRUE
+produce.futurerefranks  <- TRUE
+produce.corridors       <- TRUE
+select.corridors        <- TRUE
 calculate.price         <- TRUE
+produce.futurecorridors <- TRUE
+select.futurecorridors  <- TRUE
+produce.futureranks     <- TRUE
+
 
 ##### PREPARE HABITAT SELECTION MODEL #####
 
 
 if(produce.gpkg) { 
-    data.importer(pointfile  = "experiment006/dataderived/Pardas_do_Tiete_todos_individuos.xlsx",
-                  metafile   = "experiment006/dataderived/Metadata.xlsx", 
+    data.importer(pointfile  =  paste0(experiment.folder,"/dataderived/Pardas_do_Tiete_todos_individuos.csv"),
+                  metafile   =  "./raw/data 29.06.20/Processed/metadata.csv", 
                   outfile    =  paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"),
                   tempdir    =  paste0(experiment.folder,"/mapsderived/observedstack"),
                   res = res,
+                  crs= 102033,
                   qgis.folder = "C:/Program Files/QGIS 3.4"
                   )
 }
@@ -116,7 +118,6 @@ print("maxent complete")
 
 
 sigma <- sigma.calculator( infile= paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
-avgdist <- avgdistance.calculator(paste0(experiment.folder,"/dataderived/pardas_tiete_all_individuals.gpkg"))
 
 ##### END HABITAT SELECTION MODELLING #####
 
@@ -130,13 +131,13 @@ if(organize.cota) {
     quota.organizer( forestmap   = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
                      quotafolder = paste0(experiment.folder, "/mapsderived/quotas")
     )
-
+}
 if(organize.app) {
     app.preparer( appfolder = "./raw/maps/APPs" ,
                   forestmap = paste0(experiment.folder,"/mapsderived/studyarea/forestmap.gpkg"),
                   select.uhe= c("BAR","BAB","NAV","IBI", "PRO"),
                   select.situation = c("RESTAURADA","EM RESTAURACAO","A RESTAURAR","Area umida","Remanescente"),
-                  outfile = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg")
+                  outfile = paste0(experiment.folder, "/mapsderived/quotas/apps_sea.gpkg")
                   )
 }
 
@@ -155,11 +156,12 @@ if(organize.app) {
 ### Results for present forest cover ###
 
 if(produce.studystack ) {
-    envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
+    envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp") %>% st_transform(crs=102033),
                tempdir   =   paste0(experiment.folder, "/mapsderived/studyarea"),
-               finalrds  = "experiment005map.rds",
+               finalrds  = paste0(experiment.folder,"/mapsderived/studyarea/experiment007map.rds"),
                res=res,
                overwrite.gb = TRUE,
+               baseproj = 102033, 
                qgis.folder  = "C:/Program Files/QGIS 3.4"
 )
 print("completed study stack")
@@ -176,8 +178,8 @@ if(predict.models) {
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
-           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas_sea_fixed.gpkg"), 
            out.folder = paste0(experiment.folder, "/mapsderived/currentquality")
            )
 }
@@ -186,7 +188,7 @@ if(produce.ranks) {
     ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
            reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
-           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas_sea.gpkg"), 
            out.folder = paste0(experiment.folder, "/mapsderived/currentquality"),
            outfile = "optimalrankadd.tif"
            )
@@ -194,8 +196,8 @@ if(produce.ranks) {
 if(produce.refranks) {
     ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcost.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
-           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"),
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas_sea.gpkg"),
            maskbyvalue = c(1,4,7), 
            out.folder = paste0(experiment.folder, "/mapsderived/currentquality"),
            outfile = "optimalref.tif"
@@ -209,10 +211,11 @@ if(produce.refranks) {
 if(produce.futurestack) {
     envpreparator( buffergeo = st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp"),
                    tempdir   =   paste0(experiment.folder, "/mapsderived/futurestack"),
-                   finalrds  = "experiment004mapfuture.rds",
-                   reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
+                   finalrds  = "experiment007mapfuture.rds",
+                   reforesteddir = paste0(experiment.folder, "/mapsderived/quotas/apps_sea.gpkg"),
                    res=res,
                    overwrite.gb = TRUE,
+                   baseproj= 102033,
                    qgis.folder  = "C:/Program Files/QGIS 3.4"
 )
 }
@@ -232,8 +235,8 @@ if(predict.futuremodels) {
 if(produce.actualfuture) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
-           constrain = paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
+           constrain = paste0(experiment.folder, "/mapsderived/quotas/quotas_sea_fixed.gpkg"), 
            out.folder = paste0(experiment.folder, "/mapsderived/futurequality")
            )
 }
@@ -241,8 +244,8 @@ if(produce.actualfuture) {
 if(produce.futureranks) {
     ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentpredictionfuture.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
-           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas_sea_fixed.gpkg"), 
            out.folder = paste0(experiment.folder, "/mapsderived/futurequality"),
            outfile = "optimalrankadd.tif"
            )
@@ -250,8 +253,8 @@ if(produce.futureranks) {
 if(produce.futurerefranks) {
     ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcostfuture.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
-           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas.gpkg"), 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
+           constrain =  paste0(experiment.folder, "/mapsderived/quotas/quotas_sea_fixed.gpkg"), 
            maskbyvalue = c(1,4,7), 
            out.folder = paste0(experiment.folder, "/mapsderived/futurequality"),
            outfile = "optimalref.tif"
@@ -276,16 +279,16 @@ if(produce.futurerefranks) {
 if(produce.actual) {
     zoner( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg"), 
            constrain = NULL, 
-           out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal"),
+           out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal")
            )
 }
 
 if(produce.ranks) {
     ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentprediction.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
            constrain =  NULL, 
            out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal"),
            outfile = "optimalrankadd.tif"
@@ -294,7 +297,7 @@ if(produce.ranks) {
 if(produce.refranks) {
     ranker( quality.map = paste0(experiment.folder,"/mapsderived/qualitypredictions/maxentcost.tif"),
            sigma = sigma, 
-           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps.gpkg") , 
+           reserves = paste0(experiment.folder,"/mapsderived/quotas/apps_sea.gpkg") , 
            constrain =  NULL, 
            maskbyvalue = c(1,4,7),
            out.folder = paste0(experiment.folder, "/mapsderived/currentqualitytotal"),
@@ -306,7 +309,7 @@ if(produce.refranks) {
 if(produce.corridors) {
     corridor.creator( optimal   = paste0(experiment.folder, "/mapsderived/currentqualitytotal/optimalplaces.tif"),
                       cost      = paste0(experiment.folder, "/mapsderived/qualitypredictions/maxentcost.tif"),
-                      existing  = paste0(experiment.folder, "/mapsderived/quotas/apps.gpkg"),
+                      existing  = paste0(experiment.folder, "/mapsderived/quotas/apps_sea.gpkg"),
                       dist      = 24*sigma,
                       pythonbat = "C:/Program Files/QGIS 3.4/bin/python-qgis.bat",
                       script    = "./code/r.cost wrapper.py",
@@ -316,7 +319,7 @@ if(produce.corridors) {
     )
 }
 
-if(produce.corridors) {
+if(select.corridors) {
     corridor.designer(corridors  = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridors.gpkg"),
                       cents      = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/reservescent.gpkg"),
                       destfile    = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg")
@@ -326,7 +329,7 @@ if(produce.corridors) {
 if(calculate.price) {
     price.calculator(corridors = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg"),
                      poly = paste0(experiment.folder, "/mapsderived/currentqualitytotal/corridors/reservesvect.gpkg"),
-                     prices = paste0(experiment.folder,"/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg"),
+                     prices = "./raw/price data/SPGADM_priced.gpkg",
                      output = paste0(experiment.folder,"/mapsderived/currentqualitytotal/optimalpriced.gpkg")
     )
 }
@@ -375,7 +378,7 @@ if(produce.futurecorridors) {
     )
 }
 
-if(produce.futurecorridors) {
+if(select.futurecorridors) {
     corridor.designer(corridors   = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/corridors.gpkg"),
                       cents       = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/reservescent.gpkg"),
                       destfile    = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/corridorssel.gpkg")
@@ -385,7 +388,7 @@ if(produce.futurecorridors) {
 if(calculate.price) {
     price.calculator(corridors = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/corridorssel.gpkg"),
                      poly = paste0(experiment.folder, "/mapsderived/futurequalitytotal/corridors/reservesvect.gpkg"),
-                     prices = paste0(experiment.folder,"/mapsderived/futurequalitytotal/corridors/corridorssel.gpkg"),
+                     prices = "./raw/price data/SPGADM_priced.gpkg",
                      output = paste0(experiment.folder,"/mapsderived/futurequalitytotal/optimalpriced.gpkg")
     )
 }

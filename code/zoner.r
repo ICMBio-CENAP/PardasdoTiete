@@ -40,6 +40,7 @@ run_qgis(alg   = "saga:gaussianfilter",
          )
 
 # Constrain it to AES tiete regions
+
 if(!is.null(constrain)) {
 run_qgis(alg = "gdal:cliprasterbymasklayer",
          INPUT = normalizePath(paste0(out.folder,"/qualityblurred.sdat")),

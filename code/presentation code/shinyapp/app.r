@@ -13,9 +13,7 @@
 # buy their services beforehand.
 
 #library(rsconnect)
-# rsconnect::setAccountInfo(name='jfsmenezes',
-#			  token='715B40D3A39A9B5086CD21C5A330AD8E',
-#			  secret='')
+#rsconnect::setAccountInfo(name='jfsmenezes', token='715B40D3A39A9B5086CD21C5A330AD8E', secret='/kdnggbhR0wOFlSPeRGMRN023DLBFYdFuRZICQc0')
 #rsconnect::deployApp("./code/presentation code/shinyapp")
 
 
@@ -57,7 +55,7 @@ server<- function(input,output) {
     corridors    <- st_read("optimalpricednow_prep.gpkg",layer="corridors")
     polysfut     <- st_read("optimalpricedfuture_prep.gpkg",layer="reserves")
     corridorsfut <- st_read("optimalpricedfuture_prep.gpkg",layer="corridors")
-
+    polysaes     <- st_read("AESreserves.gpkg")
 
     # set color palletes for future reserves and current reserves.
     colorpoly    <- colorFactor(rainbow(length(unique(polys$cluster_id))), polys$cluster_id)
@@ -69,6 +67,12 @@ server<- function(input,output) {
         setView(lng = -48.8317, lat = -21.7548, zoom = 8) %>%
         addProviderTiles(providers$CartoDB.Positron,group="Mapa Base") %>%
         addProviderTiles(providers$Esri.WorldImagery,group="Satélite") %>%
+        addPolygons(
+            data=polysaes,
+            color = "#92F492",
+            fill = FALSE,
+            group = "Reservas AES"
+            ) %>%
         addPolygons(data=studyarea, 
             color = "#000000",
             weight = 2,
@@ -105,7 +109,7 @@ server<- function(input,output) {
             ) %>%
         addLayersControl(
             baseGroups =c("Mapa Base","Satélite"),
-            overlayGroups = c("Reservas atual","Corredor atual","Reservas futuro","Corredor futuro"),
+            overlayGroups = c("Reservas atual","Corredor atual","Reservas futuro","Corredor futuro","Reservas AES"),
             options = layersControlOptions(collapsed = FALSE)
             )
     

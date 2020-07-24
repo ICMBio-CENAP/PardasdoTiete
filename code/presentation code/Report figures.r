@@ -8,27 +8,34 @@ library(lubridate)
 library(openxlsx)
 library(dplyr)
 
-locs <- st_read("./experiment006/dataderived/pardas_tiete_all_individuals.gpkg")
-metadata<- read.xlsx("./experiment006/dataderived/Metadata.xlsx")
-## Figure 1: Period of collar activity from all the animals
-## (data from December/2019)
-ggplot(locs,aes(x=timestamp, y=Name,col=Name)) + geom_point() +theme_bw() +xlab("tempo")+ylab("Nome do Animal")
+locs <- st_read("./experiment007/dataderived/pardas_tiete_all_individuals.gpkg")
+metadata<- read.csv("./raw/data 29.06.20/Processed/metadata.csv", stringsAsFactors =F)
+
 
 # Table 1: Duration, sex, beggining of sample, end of sample, and  sample size for each animal
 
-table1 <- data.frame( 
-           Nome = as.character(unique(locs$Name)),
-           Sexo = as.character( metadata$sex[match(unique(locs$Name), metadata$Name)] ),
-           begin= format(as.POSIXct(tapply(locs$timestamp, locs$Name, min), origin = "1970-01-01 00:00.00 UTC" ),"%d/%m/%Y"),
-           end  = format(as.POSIXct(tapply(locs$timestamp, locs$Name, max), origin = "1970-01-01 00:00.00 UTC" ),"%d/%m/%Y"),
-           duration = round( difftime(
-                             as.POSIXct(tapply(locs$timestamp, locs$Name, max),origin = "1970-01-01 00:00.00 UTC"), 
-                             as.POSIXct(tapply(locs$timestamp, locs$Name, min),origin = "1970-01-01 00:00.00 UTC"),
-                             units="days")
-                             ,0),
-            n=as.numeric(table(locs$Name))
+table1 <- data.frame(
+  Nome  = names,
+  Sexo  = metadata$Sex[match(names, metadata$Name)],
+  begin = aggregate(locs$timestamp, list(locs$name), min)[,2], 
+  end   = aggregate(locs$timestamp, list(locs$name), max)[,2] 
 )
-write.xlsx(table1,file="./presentations/Relatorio trimestral 2020_03/table1.xlsx")
+table1 <- cbind(table1, duration = round(table1$end-table1$begin) )
+
+
+write.xlsx(table1,file="./presentations/Final report 2020/table1.xlsx")
+
+## Figure 1: Period of collar activity from all the animals
+names <- rev(names(sort(tapply(locs$timestamp,locs$name,max))))
+ggplot(locs,aes(x=timestamp, y=name,col=name)) + 
+  geom_point()+
+  theme_bw() +
+  scale_x_datetime(date_minor_breaks="6 months")+
+  scale_y_discrete(limits = names )+
+  xlab("tempo")+
+  ylab("Nome do Animal")
+
+
 
 ## Figure 2: Plotting animal locations on top of a map of the São paulo and of the study area
 gg_color_hue <- function(n) {
@@ -43,34 +50,12 @@ studyarea <- st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp")
 plot(boundaries$geometry,border="gray50",lty=1)
 plot(boundsp,lwd=2,add=T)
 plot(studyarea$geometry, lwd=2,lty=2,add=T)
-plot(locs["Name"] %>% st_transform(crs=4326),pch=16,pal=gg_color_hue(length(unique(locs$Name))),add=T)
-legend("topright",legend=sort(unique(locs$Name)),fill=gg_color_hue(length(unique(locs$Name))))
+plot(locs["name"] %>% st_transform(crs=4326),pch=16,pal=gg_color_hue(length(unique(locs$name))),add=T)
+legend("topright",legend=sort(unique(locs$name)),fill=gg_color_hue(length(unique(locs$name))))
 
-## Figure 3: Individualized plot of animal trajectories.
-locs.classes <- readRDS("./experiment003/dataderived/mov.track.rds")
-ggplot(locs.classes,aes(x=x_,y=y_,col=disp)) +
-  geom_point()+
-  facet_wrap(~Name,scales="free")+
-  theme_bw()+
-  scale_x_continuous(labels=NULL) +
-  scale_y_continuous(labels=NULL) +
-  scale_colour_discrete(labels = c("Dispersão","Residência"))+
-  labs(colour = "Comportamento",x="Longitude", y="Latitude")
-
-
-
-
-
-## Figure 4: Plot of average distance from initial points per day, for each individual
-first.captures <- locs %>% group_by(Name) %>% arrange(timestamp) %>% slice(1) %>% arrange(ID)
-distances <- st_distance(locs, first.captures)
-distances <- as.numeric(distances[cbind( 1:nrow(locs), match(locs$ID,unique(locs$ID)))])
-locs.dist <- cbind(locs,distances)
-
-ggplot(locs.dist,aes(x=timestamp, y=distances))+geom_line()+facet_wrap(~Name,scale="free")+theme_bw()+ theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 # Table 2: Daily distance walked
-dayinds <- st_coordinates(locs) %>% as.data.frame %>% split( list(locs$Name,date(locs$timestamp)))
+dayinds <- st_coordinates(locs) %>% as.data.frame %>% split( list(locs$name,date(locs$timestamp)))
 dayinds <- dayinds[sapply(dayinds,nrow)>0]
 
 distanceday <- numeric(length=length(dayinds))

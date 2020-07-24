@@ -79,19 +79,25 @@ for(a in 1:length(clusters)) {
 # Remove temporary files
 listremove <- list.files(outdir, pattern="(tif$|tfw$|xml$)",full.names=T)
 file.remove(listremove)
-
+    
 # Read all shape files
 allpaths <- list.files(outdir,pattern=".shp",full.names=T)
+gc()
 cost <- rast(cost)
 for( a in 1:length(allpaths)) {
     corridors <- vect(allpaths[[a]])
     corridorvalue <- terra::extract(cost,corridors,fun=sum)
-    corridorvalue <- c(corridorvalue)
+    corridorvalue <- corridorvalue[,ncol(corridorvalue)]
     rm(corridors)
+    gc()
     st_read(allpaths[[a]]) %>% 
     cbind(corridorvalue=corridorvalue) %>% 
     st_write(dsn=outcor,update=T)
 
 }
-
+# Validate outcor, and check it has as many corridors as the sum of all shape files
+corridors <- sapply(allpaths, function(x) nrow(st_read(x)))
+total <- sum(corridors)
+corridorsgpkg <- nrow(st_read(outcor))
+if(corridors != corridorsgpkg) stop("corridors gpkg does not have all corridors")
 }

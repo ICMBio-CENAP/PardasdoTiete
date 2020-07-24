@@ -24,10 +24,11 @@
 
 price.calculator <- function( corridors, polys, prices, output) {
 
-polys     <- st_read("./experiment006/mapsderived/currentqualitytotal/corridors/reservesvect.gpkg")
-prices    <- st_read("./raw/price data/SPGADM_priced.gpkg")
-corridors <- st_read("./experiment006/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg")
-outfile   <- "./experiment006/mapsderived/currentqualitytotal/optimalpriced.gpkg"
+# FOR DEBUG:
+#polys     <- st_read("./experiment006/mapsderived/currentqualitytotal/corridors/reservesvect.gpkg")
+#prices    <- st_read("./raw/price data/SPGADM_priced.gpkg")
+#corridors <- st_read("./experiment006/mapsderived/currentqualitytotal/corridors/corridorssel.gpkg")
+#outfile   <- "./experiment006/mapsderived/currentqualitytotal/optimalpriced.gpkg"
 
 
     corridors <-  st_read(corridors)
@@ -69,8 +70,8 @@ corridors <- ints %>%
         c() %>%
         cbind(corridors,price=.)
 
-st_write(polys,dsn = outfile,layer="reserves")
-st_write(corridors,dsn = outfile,layer="corridors")
+st_write(polys,dsn = output,layer="reserves")
+st_write(corridors,dsn = output,layer="corridors")
 
 
 }
