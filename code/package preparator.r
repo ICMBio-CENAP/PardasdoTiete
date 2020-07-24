@@ -16,8 +16,9 @@
 
 package.assembler <- function(folder,outfolder) {
 
-    folder <- "./experiment006"
-    outfolder <- "./experiment006/product package"
+    # FOR DEBUG:
+    #folder <- "./experiment007"
+    #outfolder <- "./experiment007/product package"
     # basemaps
     md   <- paste0(folder,"/mapsderived/qualitypredictions/maxentprediction.tif")
     mdb  <- paste0(folder,"/mapsderived/futurequality/qualityblurred2.sdat")

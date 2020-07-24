@@ -51,12 +51,12 @@ server<- function(input,output) {
     
     
     # Read pre-prepared data (check app preparer.r for details)
-    studyarea    <- st_read( "appfiles.gpkg", layer = studyarea     )
-    polys        <- st_read( "appfiles.gpkg", layer = reservesnow   )
-    corridors    <- st_read( "appfiles.gpkg", layer = corridorsnow  )
-    polysfut     <- st_read( "appfiles.gpkg", layer = reservesfut   )
-    corridorsfut <- st_read( "appfiles.gpkg", layer = corridorsfut  )
-    polysaes     <- st_read( "appfiles.gpkg", layer = apps          )
+    studyarea    <- st_read( "appfiles.gpkg", layer = "studyarea"     )
+    polys        <- st_read( "appfiles.gpkg", layer = "reservesnow"   )
+    corridors    <- st_read( "appfiles.gpkg", layer = "corridorsnow"  )
+    polysfut     <- st_read( "appfiles.gpkg", layer = "reservesfut"   )
+    corridorsfut <- st_read( "appfiles.gpkg", layer = "corridorsfut"  )
+    polysaes     <- st_read( "appfiles.gpkg", layer = "apps"          )
 
     # set color palletes for future reserves and current reserves.
     colorpoly    <- colorFactor(rainbow(length(unique(polys$cluster_id))), polys$cluster_id)

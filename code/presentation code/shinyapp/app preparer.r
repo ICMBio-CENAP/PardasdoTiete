@@ -36,7 +36,7 @@ apppreparer <- function(mapnow, mapfuture, studyarea,APPs, appfile) {
     st_transform(crs=4326)
 
     polys$price <-round(polys$price,2)
-    st_write(polys,dsn=appfiles,layer="reservesnow")
+    st_write(polys,dsn=appfile,layer="reservesnow")
 
     # Same as above with corridors, but also rounding corridor value
     corridors<-st_read(mapnow,layer="corridors") %>%
@@ -57,7 +57,7 @@ apppreparer <- function(mapnow, mapfuture, studyarea,APPs, appfile) {
     st_transform(crs=4326) 
     corridorsfut$corridorvalue <- round(corridorsfut$corridorvalue)
     corridorsfut$price <- round(corridorsfut$price)
-    st_write(corridorsfut,dsn=appfuture,layer="corridorsfut")
+    st_write(corridorsfut,dsn=appfile,layer="corridorsfut")
 
     st_read(APPs) %>% 
     st_transform(crs=4326) %>%
