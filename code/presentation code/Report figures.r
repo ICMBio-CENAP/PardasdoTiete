@@ -53,71 +53,36 @@ plot(studyarea$geometry, lwd=2,lty=2,add=T)
 plot(locs["name"] %>% st_transform(crs=4326),pch=16,pal=gg_color_hue(length(unique(locs$name))),add=T)
 legend("topright",legend=sort(unique(locs$name)),fill=gg_color_hue(length(unique(locs$name))))
 
+# Figure 3: Ploting the effect of each variable in the maxent model
+model <- readRDS("./experiment007/dataderived/maxentmodel.rds")
+reponse(model)
 
-# Table 2: Daily distance walked
-dayinds <- st_coordinates(locs) %>% as.data.frame %>% split( list(locs$name,date(locs$timestamp)))
-dayinds <- dayinds[sapply(dayinds,nrow)>0]
+# Figure 4: Percent contribution of each variable in maxent with nice label names
+model <- readRDS("./experiment007/dataderived/maxentmodel.rds")
 
-distanceday <- numeric(length=length(dayinds))
-for( a in 1:length(dayinds)) {
-    dists<- dist(dayinds[[a]])
-    dists<- as.matrix(dists)
-    dists<- dists[-nrow(dists),-1]
-    dists.cum <- sum(diag(dists))
-    distanceday[a] <- dists.cum
-}
-indsofday <- strsplit( names(dayinds), "\\.")
-indsofday <- sapply(indsofday,"[[",1)
-summ <- tapply(distanceday,indsofday, summary)
-summ <- do.call(rbind, summ)
-summ <- as.data.frame(summ)
-summ <- cbind(ID = metadata$ID[match(rownames(summ),metadata$Name)], Nome = rownames(summ), summ[,-4] )
-summ <- summ[order(summ$ID),]
-write.xlsx(summ,file="./presentations/Relatorio trimestral 2019_12/table2.xlsx")
-
-
-# Figure 5: Percent contribution of each variable in maxent with nice label names
-experiment004\dataderived\maxentmodel.rds
-model <- readRDS("./experiment004/dataderived/maxentmodel.rds")
-plot(model,main="contribuição da váriavel",xlab="porcentagem",
-labels=rev(c("açucar 5000m","floresta 100m","floresta 5000m", "açucar 2500m", "proximidade agua",
-"floresta 500m", "proximidade estradas","açucar 500m", "pastagem 5000m","log proximidade estradas","pastagem 100m",
-"floresta 2500m","pastagem 500m","pastagem 2500m", "uso da terra", "açucar 100m","log proximidade agua",
-"presença agua","presença estrada","constante"))
+plot(model,
+  main="contribuição da váriavel",
+  xlab="porcentagem",
+  labels=rev(c("açucar 5000m","floresta 2500m","floresta 5000m", "floresta 100m", "floresta 500m",
+    "pastagem 5000m", "proximidade água (log)","uso da terra", "proximidade agua","pastagem 100m",
+    "proximidade estradas","pastagem 2500m","açucar 100m","açucar 2500m","açucar 500m","pastagem 500m",
+    "presença de água","proximidade estradas (log)","presença de estradas","constante"
+    ))
 )
 
-# Figure 6: Prediction map 
-library(raster)
-library(sf)
-crs <- '+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs'
 
-predmap <- raster("./experiment004/mapsderived/qualitypredictions/maxentprediction.tif")
+# Figure 5: Prediction map 
+crs <- 102033
+predmap <- raster("./experiment007/mapsderived/qualitypredictions/maxentprediction.tif")
 studyarea <- st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp") %>% st_transform(crs=crs)
 plot(predmap,col = gray.colors(10, start = 0.3, end = 0.9, gamma = 2.2, alpha = NULL),axes=FALSE,box=FALSE)
 plot(studyarea$geometry,add=T,col=NA,lwd=2)
 
+
 # Figure 7: Prediction map  blurred
-library(raster)
-predmap <- raster("./experiment004/mapsderived/currentquality/qualityblurred.sdat")
+predmap <- raster("./experiment007/mapsderived/currentquality/qualityblurred.sdat")
 plot(predmap,col = gray.colors(10, start = 0.3, end = 0.9, gamma = 2.2, alpha = NULL),axes=FALSE,box=FALSE)
 
 
 # Figure 8: Predicted optimal regions
 # Done in QGIS
-
-# Figure 12: Prediction map averaged by municipality
-library(raster)
-library(sf)
-crs <- '+proj=aea +lat_1=-2 +lat_2=-22 +lat_0=-12 +lon_0=-54 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs'
-
-predmap <- raster("./experiment003/mapsderived/qualitypredictions/meanquality.tif")
-studyarea <- st_read("./raw/maps/area_estudo/area_estudo_SIRGAS2000_UTM22S.shp") %>% st_transform(crs=crs)
-boundaries<- readRDS("./raw/maps/limites politicos/base gdam nivel 2.rds") %>% st_transform(crs=crs)
-boundaries<- boundaries[boundaries$NAME_1=="São Paulo",]
-rel.boundaries <- st_intersection(boundaries,studyarea)
-rel.boundaries <- as_Spatial(st_zm(rel.boundaries))
-rel.boundaries <- extract(predmap,rel.boundaries,fun=mean,sp=T)
-rel.boundaries <- st_as_sf(rel.boundaries)
-plot(rel.boundaries["meanquality"],key.pos=1,main=NULL)
-values <- as.data.frame(rel.boundaries[,c("NAME_2","meanquality")])[,-3]
-values <- head(values[order(values$meanquality,decreasing=T),],10)
