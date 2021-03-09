@@ -30,10 +30,9 @@ homerange.calculator <-  function(infile, outfile) {
 
     locs.ctmm <-  st_transform(locs,crs=4326)
     locs.ctmm[,c("Longitude","Latitude")] <- st_coordinates(locs.ctmm)
-    locs.ctmm <- st_drop_geometry(locs.ctmm)
+    locs.ctmm <- st_drop_geometry(locs.ctmm)[,-1]
 
     colnames(locs.ctmm) <- c("individual.local.identifier", "timestamp","location.long","location.lat") 
-    locs.ctmm <- locs.ctmm[!duplicated(locs.ctmm$timestamp),]
     locs.ctmm <- locs.ctmm[order(locs.ctmm$individual.local.identifier,locs.ctmm$timestamp),]
     locs.tel <- as.telemetry(locs.ctmm, timeformat="%Y-%m-%d %H:%M:%S",timezone="")
 
@@ -44,7 +43,7 @@ homerange.calculator <-  function(infile, outfile) {
     exclude <- strsplit(exclude,",")[[1]]
 
 
-    # Excluding Araçatuba,Mineiro and Pepira for lacking asymtote.
+    # Excluding Araçatuba,Mineiro, Pepira, Piloto, Tupa e Zorro for lacking asymtote.
     locs.tel.hr <- locs.tel[!(names(locs.tel) %in% exclude)]
     
     # get guesses value
@@ -59,18 +58,21 @@ homerange.calculator <-  function(infile, outfile) {
 
     #Convert to sf
     homeranges.sf <- lapply(homeranges.spdf,st_as_sf)
-    homeranges.sf <- mapply(cbind, homeranges.sf, animal= names(guesses) )
+    homeranges.sf <- mapply(cbind, homeranges.sf, animal= names(guesses), SIMPLIFY=F )
     homeranges.sf <- do.call(rbind,homeranges.sf)
-    homeranges.sf <- st_transform(homeranges.sf,crs=st_crs(infile))
+    homeranges.sf <- st_transform(homeranges.sf,crs=st_crs(locs))
 
     # Add areas estimates
-    areas <- c(sapply(homeranges, function(x) c(summary(testhr)$CI) ))
+    areas <- sapply(homeranges, function(x) c(summary(x)$CI) ) 
     homeranges.sf <- cbind(homeranges.sf,areas)
 
     st_write(homeranges.sf,dsn=outfile)
 
 }
 
-homerange.calculator(infile  = "./experiment006/dataderived/pardas_tiete_all_individuals.gpkg",
-                     outfile = "./experiment006/dataderived/homeranges.gpkg"
+
+library(sf)
+library(ctmm)
+homerange.calculator(infile  = "./experiment007/dataderived/pardas_tiete_all_individuals.gpkg",
+                     outfile = "./experiment007/dataderived/homeranges.gpkg"
 )

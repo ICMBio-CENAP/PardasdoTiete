@@ -14,7 +14,7 @@
 
 # Output: A maxent model with evaluation.
 
-maxenter <- function(data, obsdir, modelfile = NULL, evalfile, nc) {
+maxenter <- function(data, obsdir, modelfile = NULL, evalfile, args=NULL, nc) {
 
 # Read data, and select some locations to be the train and test dataset.
 rasterOptions(maxmemory = 1e+06)
@@ -35,13 +35,22 @@ absences.test <- sample(0:1,nrow(absences), prob =c(0.8,0.2), replace=T)
 
 
 # Run maxent model
-model <- maxent(obsstack, st_coordinates(presences[presences$test==0,]), absences = absences[absences.test==0,], factors="landuse")
+model <- maxent(obsstack, st_coordinates(presences[presences$test==0,]), absences = absences[absences.test==0,], args=args, factors="landuse")
 saveRDS(model, file = modelfile)
 
 # Evaluate the model
-presence.testquali <- predict(model, as.data.frame(raster::extract(obsstack, st_coordinates(presences[presences$test==1,])))  )
-absence.testquali  <- predict(model, as.data.frame(raster::extract(obsstack, absences[absences.test==1,]))  )
-auc.test <- evaluate(presence.testquali,absence.testquali)
+if(class(model)=="MaxEntReplicates") {
+    auc.test <- lapply(model@models, function(x) {
+    presence.testquali <- predict(x, as.data.frame(raster::extract(obsstack, st_coordinates(presences[presences$test==1,])))  )
+    absence.testquali  <- predict(x, as.data.frame(raster::extract(obsstack, absences[absences.test==1,]))  )
+    return(evaluate(presence.testquali,absence.testquali))
+    })
+} else{
+    presence.testquali <- predict(model, as.data.frame(raster::extract(obsstack, st_coordinates(presences[presences$test==1,])))  )
+    absence.testquali  <- predict(model, as.data.frame(raster::extract(obsstack, absences[absences.test==1,]))  )
+    auc.test <- evaluate(presence.testquali,absence.testquali)
+    }
+
 saveRDS(auc.test, file = evalfile)
 print(auc.test)
 
