@@ -63,7 +63,6 @@ percentiles$name <- factor(percentiles$name,levels = percentiles$name[order(perc
 # take percentile as table 1
 
 
-
 ## Plot effects of sugarcane 5000m
 replicates = model@models
 niceresponse = function(modellist,var,fancyname=NULL) {
@@ -90,6 +89,12 @@ eval =  readRDS("./Sugarcane paper/maxenteval.rds")
 aucs = sapply(eval,slot,"auc")
 percentiles.auc = quantile(aucs, probs = c(0.05/2,1-0.05/2))
 
-data(mtcars)
-d <- ggplot(mtcars, aes(cyl, mpg)) + geom_point()
-d + stat_summary(fun.y = "median", colour = "red", size = 2, geom = "point")
+
+## Is the effect of sugarcane correlated with something else?
+
+presences = model@models[[1]]@presence
+presences = presences[,-c(1,2,4,19)] # Removing landuse(categorical)
+cors  = cor(presences,method="spearman")
+cors = cors[c("prop_sugar_100m","prop_sugar_2500m","prop_sugar_5000m","prop_sugar_500m"),]
+cors = t(cors)
+barplot(cors,beside=T,legend.text=T)
