@@ -97,4 +97,10 @@ presences = presences[,-c(1,2,4,19)] # Removing landuse(categorical)
 cors  = cor(presences,method="spearman")
 cors = cors[c("prop_sugar_100m","prop_sugar_2500m","prop_sugar_5000m","prop_sugar_500m"),]
 cors = t(cors)
-barplot(cors,beside=T,legend.text=T)
+cors = cors[order(rowSums(cors)),]
+barplot(cors,
+        beside=T,
+        ylim = c(-1,1),
+        names.arg =c("Sugar 100m","Sugar 500m","Sugar 2500m","Sugar 5000m"),
+        legend.text=c("Pasture 500m","Pasture 2500m", "Forest 2500m", "Road Proximity","Log Road Proximity","Forest 5000m","Pasture 5000m","Forest 500m","Pasture 100m","Forest 100m","Log Water Proximity","Sugar 100m","Sugar 5000m","Sugar 500m","Sugar 2500m"),
+        args.legend=list(x="topleft"))
