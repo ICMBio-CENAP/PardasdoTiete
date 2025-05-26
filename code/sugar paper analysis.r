@@ -15,6 +15,8 @@ library(sf)
 library(dismo) 
 library(ggplot2) 
 library(gridExtra)
+library(tibble)
+library(tidyr)
 source("./code/maxenter.r")
 experiment.folder <- "./experiment007"
 res<-30
@@ -104,3 +106,38 @@ barplot(cors,
         names.arg =c("Sugar 100m","Sugar 500m","Sugar 2500m","Sugar 5000m"),
         legend.text=c("Pasture 500m","Pasture 2500m", "Forest 2500m", "Road Proximity","Log Road Proximity","Forest 5000m","Pasture 5000m","Forest 500m","Pasture 100m","Forest 100m","Log Water Proximity","Sugar 100m","Sugar 5000m","Sugar 500m","Sugar 2500m"),
         args.legend=list(x="topleft"))
+
+cors |>
+    as.data.frame() |>
+    rownames_to_column(var = "correlation_candidate") |>
+    pivot_longer(!correlation_candidate,names_to="sugarcane_var",values_to="correlation") |>
+    subset(subset=!grepl("sugar",correlation_candidate)) |>
+ggplot( aes(x = correlation_candidate, y = correlation, col= sugarcane_var))+
+    geom_point(size=2)+
+    geom_hline(data=data.frame(pos=c(-0.5,0,0.5)),aes(yintercept=pos,lty=(abs(pos)>0)))+
+    geom_hline(aes(yintercept=-0))+
+    coord_flip()+
+    theme_bw()+
+    theme(panel.grid.major = element_line(linetype = "dashed"))+
+    scale_x_discrete(name = "Correlation candidate", labels=c(
+        "prop_pasture_500m" = "Pasture 500m",
+        "prop_pasture_2500m" = "Pasture 2500m",
+        "prop_forest_2500m" = "Forest 2500m",
+        "estradasproxmap" = "Road proximity",
+        "log_dist_roads" = "log(Road proximity)",
+        "prop_forest_5000m" = "Forest 5000m",
+        "prop_pasture_5000m" = "Pasture 5000m",
+        "prop_pasture_100m" = "Pasture 100m",
+        "prop_forest_500m" = "Forest 100m",
+        "prop_forest_100m" = "Forest 100m",
+        "log_dist_water" = "log(Water proximity)",
+        "waterproxmap" = "Water proximity"
+    ))+
+    scale_color_discrete(name = "Sugarcane variable", labels = c(
+        "prop_sugar_100m"  = "Sugar 100m",   
+        "prop_sugar_5000m" = "Sugar 5000m",  
+        "prop_sugar_500m"  = "Sugar 500m",   
+        "prop_sugar_2500m" = "Sugar 2500m"  
+    ))+
+    guides(lty="none")
+ggsave("./Sugarcane paper/figure 3v2.png")
